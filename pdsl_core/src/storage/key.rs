@@ -223,6 +223,7 @@ mod tests {
 
 	#[test]
 	fn store_load_clear() {
+        let _ = env_logger::try_init();
 		let key = Key([0x42; 32]);
 		assert_eq!(unsafe { ContractEnv::load(key) }, None);
 		unsafe { ContractEnv::store(key, &[0x5]); }
@@ -233,6 +234,7 @@ mod tests {
 
 	#[test]
 	fn key_add() {
+        let _ = env_logger::try_init();
 		let key00 = Key([0x0; 32]);
 		let key05 = key00 + 5_u32;  // -> 5
 		let key10 = key00 + 10_u32; // -> 10         | same as key55
@@ -245,6 +247,7 @@ mod tests {
 
 	#[test]
 	fn key_add_sub() {
+        let _ = env_logger::try_init();
 		let key0a = Key([0x0; 32]);
 		unsafe { ContractEnv::store(key0a, &[0x01]); }
 		let key1a = key0a + 1337_u32;
@@ -262,6 +265,7 @@ mod tests {
 
 	#[test]
 	fn key_sub() {
+        let _ = env_logger::try_init();
 		assert_eq!(
 			Key([0x42; 32]) - 0_u32,
 			Key([0x42; 32])
@@ -325,6 +329,7 @@ mod tests {
 
 	#[test]
 	fn as_bytes() {
+        let _ = env_logger::try_init();
 		let mut key = Key([0x42; 32]);
 		assert_eq!(key.as_bytes(), &[0x42; 32]);
 		assert_eq!(key.as_bytes_mut(), &mut [0x42; 32]);
@@ -332,6 +337,7 @@ mod tests {
 
 	#[test]
 	fn key_diff() {
+        let _ = env_logger::try_init();
 		let key1 = Key([0x0; 32]);
 		let key2 = key1 + 0x42_u32;
 		let key3 = key1 + u32::max_value() + 1_u32;

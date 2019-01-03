@@ -44,6 +44,7 @@ fn new_filled_vec() -> storage::Vec<i32> {
 #[test]
 #[should_panic]
 fn new_unchecked_uninit() {
+    let _ = env_logger::try_init();
 	let vec = unsafe {
 		Vec::<i32>::new_unchecked(Key([0x42; 32]))
 	};
@@ -54,6 +55,7 @@ fn new_unchecked_uninit() {
 
 #[test]
 fn init() {
+    let _ = env_logger::try_init();
 	let vec = new_empty_vec::<i32>();
 	assert_eq!(vec.len(), 0);
 	assert_eq!(vec.is_empty(), true);
@@ -62,6 +64,7 @@ fn init() {
 
 #[test]
 fn simple() {
+    let _ = env_logger::try_init();
 	let mut vec = new_empty_vec();
 	assert_eq!(vec.len(), 0);
 	vec.push(5);
@@ -78,6 +81,7 @@ fn simple() {
 
 #[test]
 fn pop_empty() {
+    let _ = env_logger::try_init();
 	let mut vec = new_empty_vec::<i32>();
 	assert_eq!(vec.len(), 0);
 	assert_eq!(vec.pop(), None);
@@ -86,6 +90,7 @@ fn pop_empty() {
 
 #[test]
 fn iter() {
+    let _ = env_logger::try_init();
 	let vec = new_filled_vec();
 	let mut iter = vec.iter();
 	assert_eq!(iter.next(), Some(&5));
@@ -97,6 +102,7 @@ fn iter() {
 
 #[test]
 fn iter_back() {
+    let _ = env_logger::try_init();
 	let vec = new_filled_vec();
 	let mut iter = vec.iter();
 	assert_eq!(iter.next_back(), Some(&77));
@@ -108,6 +114,7 @@ fn iter_back() {
 
 #[test]
 fn get() {
+    let _ = env_logger::try_init();
 	let vec = new_filled_vec();
 	assert_eq!(vec.get(0), Some(&5));
 	assert_eq!(vec.get(1), Some(&42));
@@ -119,6 +126,7 @@ fn get() {
 
 #[test]
 fn index() {
+    let _ = env_logger::try_init();
 	let vec = new_filled_vec();
 	assert_eq!(vec[0], 5);
 	assert_eq!(vec[1], 42);
@@ -128,6 +136,7 @@ fn index() {
 
 #[test]
 fn index_comp() {
+    let _ = env_logger::try_init();
 	let vec = {
 		let mut vec = new_empty_vec();
 		vec.push(String::from("Hello"));
@@ -142,6 +151,7 @@ fn index_comp() {
 #[test]
 #[should_panic]
 fn index_fail_0() {
+    let _ = env_logger::try_init();
 	let vec = new_filled_vec();
 	vec[4];
 }
@@ -149,6 +159,7 @@ fn index_fail_0() {
 #[test]
 #[should_panic]
 fn index_fail_1() {
+    let _ = env_logger::try_init();
 	let vec = new_filled_vec();
 	vec[u32::max_value()];
 }
@@ -156,12 +167,14 @@ fn index_fail_1() {
 #[test]
 #[should_panic]
 fn index_fail_2() {
+    let _ = env_logger::try_init();
 	let vec = new_empty_vec::<i32>();
 	vec[0];
 }
 
 #[test]
 fn mutate() {
+    let _ = env_logger::try_init();
 	let mut vec = new_filled_vec();
 	assert_eq!(vec.mutate(0, |x| *x += 10), Some(&15));
 	assert_eq!(vec.mutate(1, |x| *x *= 2), Some(&84));
@@ -171,6 +184,7 @@ fn mutate() {
 
 #[test]
 fn replace() {
+    let _ = env_logger::try_init();
 	let mut vec = new_filled_vec();
 	assert_eq!(vec.replace(0, || 1), Some(5));
 	assert_eq!(vec.get(0), Some(&1));
@@ -182,6 +196,7 @@ fn replace() {
 
 #[test]
 fn swap() {
+    let _ = env_logger::try_init();
 	let mut vec = new_filled_vec();
 	assert_eq!(vec.get(1), Some(&42));
 	assert_eq!(vec.get(3), Some(&77));
@@ -192,6 +207,7 @@ fn swap() {
 
 #[test]
 fn swap_same() {
+    let _ = env_logger::try_init();
 	let mut vec = new_filled_vec();
 	assert_eq!(vec.get(2), Some(&1337));
 	// Does basically nothing.
@@ -202,12 +218,14 @@ fn swap_same() {
 #[test]
 #[should_panic]
 fn swap_invalid() {
+    let _ = env_logger::try_init();
 	let mut vec = new_filled_vec();
 	vec.swap(0, u32::max_value());
 }
 
 #[test]
 fn swap_remove() {
+    let _ = env_logger::try_init();
 	let mut vec = new_filled_vec();
 	assert_eq!(vec.get(1), Some(&42));
 	assert_eq!(vec.get(3), Some(&77));
@@ -220,12 +238,14 @@ fn swap_remove() {
 
 #[test]
 fn swap_remove_empty() {
+    let _ = env_logger::try_init();
 	let mut vec = new_empty_vec::<i32>();
 	assert_eq!(vec.swap_remove(0), None);
 }
 
 #[test]
 fn iter_size_hint() {
+    let _ = env_logger::try_init();
 	let vec = new_filled_vec();
 	let mut iter = vec.iter();
 	assert_eq!(iter.size_hint(), (4, Some(4)));
