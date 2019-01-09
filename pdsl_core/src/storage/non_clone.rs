@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with pDSL.  If not, see <http://www.gnu.org/licenses/>.
 
-use parity_codec_derive::{Encode, Decode};
-
 use core::marker::PhantomData;
 
 /// Marks types as non-`Copy` and non-`Clone`.
@@ -30,7 +28,6 @@ use core::marker::PhantomData;
 ///   non-`Copy` and non-`Clone` since that would violate their
 ///   ownership guarantees over their contract storage slot.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Encode, Decode)]
 pub struct NonCloneMarker<T>(PhantomData<T>);
 
 impl<T> Default for NonCloneMarker<T> {

@@ -24,8 +24,6 @@ use crate::{
 	env::{Env, ContractEnv},
 };
 
-use parity_codec_derive::{Encode, Decode};
-
 /// A raw cell.
 ///
 /// Provides uninterpreted and unformatted access to the associated contract storage slot.
@@ -36,12 +34,24 @@ use parity_codec_derive::{Encode, Decode};
 ///
 /// Read more about kinds of guarantees and their effect [here](../index.html#guarantees).
 #[derive(Debug, PartialEq, Eq, Hash)]
-#[derive(Encode, Decode)]
 pub struct RawCell {
 	/// The key to the associated constract storage slot.
 	key: Key,
 	/// Marker that prevents this type from being `Copy` or `Clone` by accident.
 	non_clone: NonCloneMarker<()>,
+}
+
+impl parity_codec::Encode for RawCell {
+	fn encode_to<W: parity_codec::Output>(&self, dest: &mut W) {
+		self.key.encode_to(dest);
+	}
+}
+
+impl parity_codec::Decode for RawCell {
+	fn decode<I: parity_codec::Input>(input: &mut I) -> Option<Self> {
+		let key = <Key>::decode(input)?;
+		Some(Self{key, non_clone: Default::default()})
+	}
 }
 
 impl RawCell {

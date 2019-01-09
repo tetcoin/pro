@@ -22,8 +22,6 @@ use crate::{
 	},
 };
 
-use parity_codec_derive::{Encode, Decode};
-
 // Missing traits:
 //
 // - DerefMut
@@ -43,10 +41,23 @@ use parity_codec_derive::{Encode, Decode};
 /// For assigning new values or mutating the value inside of it either use
 /// [`set`](struct.Value.html#method.set) or
 /// [`mutate_with`](struct.Value.html#method.mutate_with).
-#[derive(Debug, Encode, Decode)]
+#[derive(Debug)]
 pub struct Value<T> {
 	/// The cell of the storage value.
 	cell: SyncCell<T>,
+}
+
+impl<T> parity_codec::Encode for Value<T> {
+	fn encode_to<W: parity_codec::Output>(&self, dest: &mut W) {
+		self.cell.encode_to(dest);
+	}
+}
+
+impl<T> parity_codec::Decode for Value<T> {
+	fn decode<I: parity_codec::Input>(input: &mut I) -> Option<Self> {
+		let cell = <SyncCell<T>>::decode(input)?;
+		Some(Value{cell})
+	}
 }
 
 impl<T> Value<T> {

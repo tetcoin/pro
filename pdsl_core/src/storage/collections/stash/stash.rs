@@ -21,8 +21,6 @@ use crate::storage::{
 	Allocator,
 };
 
-use parity_codec_derive::{Encode, Decode};
-
 /// A stash collection.
 ///
 /// Provides O(1) random insertion, deletion and access of its elements.
@@ -58,6 +56,25 @@ pub struct Stash<T> {
 	max_len: storage::Value<u32>,
 	/// The entries of the stash.
 	entries: SyncChunk<Entry<T>>,
+}
+
+impl<T> parity_codec::Encode for Stash<T> {
+	fn encode_to<W: parity_codec::Output>(&self, dest: &mut W) {
+		self.next_vacant.encode_to(dest);
+		self.len.encode_to(dest);
+		self.max_len.encode_to(dest);
+		self.entries.encode_to(dest);
+	}
+}
+
+impl<T> parity_codec::Decode for Stash<T> {
+	fn decode<I: parity_codec::Input>(input: &mut I) -> Option<Self> {
+		let next_vacant = <_>::decode(input)?;
+		let len = <_>::decode(input)?;
+		let max_len = <_>::decode(input)?;
+		let entries = <_>::decode(input)?;
+		Some(Self{next_vacant, len, max_len, entries})
+	}
 }
 
 /// Iterator over the values of a stash.
@@ -189,7 +206,6 @@ where
 /// This represents either an occupied entry with its associated value
 /// or a vacant entry pointing to the next vacant entry.
 #[derive(Debug)]
-#[derive(Encode, Decode)]
 enum Entry<T> {
 	/// A vacant entry pointing to the next vacant index.
 	Vacant(u32),
@@ -197,22 +213,40 @@ enum Entry<T> {
 	Occupied(T),
 }
 
-impl<T> parity_codec::Encode for Stash<T> {
+impl<T> parity_codec::Encode for Entry<T>
+where
+	T: parity_codec::Codec,
+{
 	fn encode_to<W: parity_codec::Output>(&self, dest: &mut W) {
-		self.next_vacant.encode_to(dest);
-		self.len.encode_to(dest);
-		self.max_len.encode_to(dest);
-		self.entries.encode_to(dest);
+		match self {
+			Entry::Vacant(next_vacant) => {
+				0_u32.encode_to(dest);
+				next_vacant.encode_to(dest);
+			}
+			Entry::Occupied(value) => {
+				1_u32.encode_to(dest);
+				value.encode_to(dest);
+			}
+		}
 	}
 }
 
-impl<T> parity_codec::Decode for Stash<T> {
+impl<T> parity_codec::Decode for Entry<T>
+where
+	T: parity_codec::Codec,
+{
 	fn decode<I: parity_codec::Input>(input: &mut I) -> Option<Self> {
-		let next_vacant = storage::Value::decode(input)?;
-		let len = storage::Value::decode(input)?;
-		let max_len = storage::Value::decode(input)?;
-		let entries = SyncChunk::decode(input)?;
-		Some(Self{next_vacant, len, max_len, entries})
+		match <u32>::decode(input)? {
+			0 => {
+				let next_vacant = <_>::decode(input)?;
+				Some(Entry::Vacant(next_vacant))
+			}
+			1 => {
+				let value = <_>::decode(input)?;
+				Some(Entry::Occupied(value))
+			}
+			_ => None
+		}
 	}
 }
 

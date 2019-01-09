@@ -62,7 +62,6 @@ pub struct HashMap<K, V> {
 /// or represent an entry that was removed after it
 /// has been occupied with key and value.
 #[derive(Debug, Clone, PartialEq, Eq)]
-#[derive(parity_codec_derive::Encode, parity_codec_derive::Decode)]
 pub enum Entry<K, V> {
 	/// An occupied slot with a key and a value.
 	Occupied(OccupiedEntry<K, V>),
@@ -70,14 +69,68 @@ pub enum Entry<K, V> {
 	Removed,
 }
 
+impl<K, V> parity_codec::Encode for Entry<K, V>
+where
+	K: parity_codec::Codec,
+	V: parity_codec::Codec,
+{
+	fn encode_to<W: parity_codec::Output>(&self, dest: &mut W) {
+		match self {
+			Entry::Occupied(occupied) => {
+				0_u32.encode_to(dest);
+				occupied.encode_to(dest);
+			}
+			Entry::Removed => {
+				1_u32.encode_to(dest);
+			}
+		}
+	}
+}
+
+impl<K, V> parity_codec::Decode for Entry<K, V>
+where
+	K: parity_codec::Codec,
+	V: parity_codec::Codec,
+{
+	fn decode<I: parity_codec::Input>(input: &mut I) -> Option<Self> {
+		match <u32>::decode(input)? {
+			0 => Some(Entry::Occupied(<OccupiedEntry<K, V>>::decode(input)?)),
+			1 => Some(Entry::Removed),
+			_ => None,
+		}
+	}
+}
+
 /// An occupied entry of a storage map.
 #[derive(Debug, Clone, PartialEq, Eq)]
-#[derive(parity_codec_derive::Encode, parity_codec_derive::Decode)]
 pub struct OccupiedEntry<K, V> {
 	/// The entry's key.
 	key: K,
 	/// The entry's value.
 	val: V,
+}
+
+impl<K, V> parity_codec::Encode for OccupiedEntry<K, V>
+where
+	K: parity_codec::Codec,
+	V: parity_codec::Codec,
+{
+	fn encode_to<W: parity_codec::Output>(&self, dest: &mut W) {
+		self.key.encode_to(dest);
+		self.val.encode_to(dest);
+	}
+}
+
+impl<K, V> parity_codec::Decode for OccupiedEntry<K, V>
+where
+	K: parity_codec::Codec,
+	V: parity_codec::Codec,
+{
+	fn decode<I: parity_codec::Input>(input: &mut I) -> Option<Self> {
+		let key = <K>::decode(input)?;
+		let val = <V>::decode(input)?;
+		Some(OccupiedEntry{key, val})
+	}
 }
 
 impl<K, V> Setup for HashMap<K, V> {
@@ -95,8 +148,8 @@ impl<K, V> parity_codec::Encode for HashMap<K, V> {
 
 impl<K, V> parity_codec::Decode for HashMap<K, V> {
 	fn decode<I: parity_codec::Input>(input: &mut I) -> Option<Self> {
-		let len = storage::Value::decode(input)?;
-		let entries = SyncChunk::decode(input)?;
+		let len = <_>::decode(input)?;
+		let entries = <_>::decode(input)?;
 		Some(Self{len, entries})
 	}
 }

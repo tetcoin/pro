@@ -16,8 +16,6 @@
 
 use crate::byte_utils;
 
-use parity_codec_derive::{Encode, Decode};
-
 const KEY_LOG_TARGET: &'static str = "key";
 
 /// Typeless generic key into contract storage.
@@ -37,7 +35,6 @@ const KEY_LOG_TARGET: &'static str = "key";
 ///
 /// Prefer using types found in `collections` or `Synced` type.
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[derive(Encode, Decode)]
 pub struct Key(pub [u8; 32]);
 
 impl core::fmt::Debug for Key {
@@ -71,6 +68,19 @@ impl core::fmt::Display for Key {
 			}
 		}
 		Ok(())
+	}
+}
+
+impl parity_codec::Encode for Key {
+	fn encode_to<W: parity_codec::Output>(&self, dest: &mut W) {
+		self.0.encode_to(dest);
+	}
+}
+
+impl parity_codec::Decode for Key {
+	fn decode<I: parity_codec::Input>(input: &mut I) -> Option<Self> {
+		let bytes = <[u8; 32]>::decode(input)?;
+		Some(Self(bytes))
 	}
 }
 

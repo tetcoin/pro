@@ -22,8 +22,6 @@ use crate::{
 	},
 };
 
-use parity_codec_derive::{Encode, Decode};
-
 const CC_ALLOC_LOG_TARGET: &'static str = "cc_alloc";
 
 /// An allocator for the contract storage.
@@ -38,7 +36,7 @@ const CC_ALLOC_LOG_TARGET: &'static str = "cc_alloc";
 /// 2. Cell chunk allocation (2^32 cells)
 ///
 /// Allocating and deallocating are always O(1) operations.
-#[derive(Debug, Encode, Decode)]
+#[derive(Debug)]
 pub struct CellChunkAlloc {
 	/// Allocator stash for single cells.
 	cells: storage::Stash<()>,
@@ -48,6 +46,25 @@ pub struct CellChunkAlloc {
 	cells_off: storage::Key,
 	/// Chunks key offset.
 	chunks_off: storage::Key,
+}
+
+impl parity_codec::Encode for CellChunkAlloc {
+	fn encode_to<W: parity_codec::Output>(&self, dest: &mut W) {
+		self.cells.encode_to(dest);
+		self.chunks.encode_to(dest);
+		self.cells_off.encode_to(dest);
+		self.chunks_off.encode_to(dest);
+	}
+}
+
+impl parity_codec::Decode for CellChunkAlloc {
+	fn decode<I: parity_codec::Input>(input: &mut I) -> Option<Self> {
+		let cells = <_>::decode(input)?;
+		let chunks = <_>::decode(input)?;
+		let cells_off = <_>::decode(input)?;
+		let chunks_off = <_>::decode(input)?;
+		Some(Self{cells, chunks, cells_off, chunks_off})
+	}
 }
 
 impl CellChunkAlloc {
