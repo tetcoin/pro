@@ -72,6 +72,9 @@ pub fn println(content: &str) {
 /// This operation is unsafe becaues it does not check for key integrity.
 /// Users can compare this operation with a raw pointer dereferencing in Rust.
 pub unsafe fn store(key: Key, value: &[u8]) {
+    println(
+        &crate::memory::format!("pdsl_core::env::store :: key = {:?}, value = {:?}",
+        key.as_bytes(), value));
     ContractEnv::store(key, value)
 }
 
@@ -82,6 +85,9 @@ pub unsafe fn store(key: Key, value: &[u8]) {
 /// This operation is unsafe becaues it does not check for key integrity.
 /// Users can compare this operation with a raw pointer dereferencing in Rust.
 pub unsafe fn clear(key: Key) {
+    println(
+        &crate::memory::format!("pdsl_core::env::clear :: key = {:?}",
+        key.as_bytes()));
     ContractEnv::clear(key)
 }
 
@@ -92,5 +98,9 @@ pub unsafe fn clear(key: Key) {
 /// This operation is unsafe becaues it does not check for key integrity.
 /// Users can compare this operation with a raw pointer dereferencing in Rust.
 pub unsafe fn load(key: Key) -> Option<Vec<u8>> {
-    ContractEnv::load(key)
+    let value = ContractEnv::load(key);
+    println(
+        &crate::memory::format!("pdsl_core::env::load :: key = {:?}, value = {:?}",
+        key.as_bytes(), value));
+    value
 }

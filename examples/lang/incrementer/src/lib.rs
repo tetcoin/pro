@@ -17,6 +17,7 @@ contract! {
     impl Deploy for Incrementer {
         /// Initializes the value to the initial value.
         fn deploy(&mut self, init_value: u32) {
+            env.println(&format!("Incrementer::deploy init_value = {:?}", init_value));
             self.value.set(init_value)
         }
     }
@@ -24,7 +25,7 @@ contract! {
     impl Incrementer {
         /// Flips the current state of our smart contract.
         pub(external) fn inc(&mut self, by: u32) {
-            env.println(&format!("Incrementer::inc"));
+            env.println(&format!("Incrementer::inc by = {:?}", by));
             self.value += by;
         }
 

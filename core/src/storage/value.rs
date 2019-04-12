@@ -163,12 +163,14 @@ where
     T: parity_codec::Encode,
 {
     fn flush(&mut self) {
+        crate::env::println("storage::Value::flush");
         self.cell.flush()
     }
 }
 
 impl<T> Drop for Value<T> {
     fn drop(&mut self) {
+        crate::env::println("storage::Value::drop");
         self.cell.clear()
     }
 }

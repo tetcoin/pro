@@ -54,6 +54,7 @@ where
 {
     /// Stores the given bytes under the given key.
     unsafe fn store(key: Key, value: &[u8]) {
+        crate::env::println("<SrmlEnv as EnvStorage>::store");
         sys::ext_set_storage(
             key.as_bytes().as_ptr() as u32,
             1,
@@ -64,17 +65,25 @@ where
 
     /// Clears the value stored under the given key.
     unsafe fn clear(key: Key) {
+        crate::env::println("<SrmlEnv as EnvStorage>::clear");
         sys::ext_set_storage(key.as_bytes().as_ptr() as u32, 0, 0, 0)
     }
 
     /// Loads the value stored at the given key if any.
     unsafe fn load(key: Key) -> Option<Vec<u8>> {
+        crate::env::println("<SrmlEnv as EnvStorage>::load");
         const SUCCESS: u32 = 0;
         let result = sys::ext_get_storage(key.as_bytes().as_ptr() as u32);
         if result != SUCCESS {
+            crate::env::println("<SrmlEnv as EnvStorage>::load FAIL");
             return None
         }
+        crate::env::println("<SrmlEnv as EnvStorage>::load ok");
         let size = sys::ext_scratch_size();
+        crate::env::println(&crate::memory::format!(
+            "<SrmlEnv as EnvStorage>::load ext_scratch_size = {:?}",
+            size
+        ));
         let mut value = Vec::new();
         if size > 0 {
             value.resize(size as usize, 0);

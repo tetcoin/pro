@@ -15,7 +15,11 @@
 // along with pDSL.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-    memory::boxed::Box,
+    env,
+    memory::{
+        boxed::Box,
+        format,
+    },
     storage::{
         alloc::{
             Allocate,
@@ -74,6 +78,7 @@ impl<T> SyncCacheEntry<T> {
     ///
     /// The cache will _not_ be marked as dirty after this operation.
     pub fn new(val: Option<T>) -> Self {
+        env::println("SyncCacheEntry::new");
         Self {
             dirty: false,
             cell_val: Box::new(val),
@@ -82,22 +87,28 @@ impl<T> SyncCacheEntry<T> {
 
     /// Returns `true` if this synchronized cache entry is dirty.
     pub fn is_dirty(&self) -> bool {
-        self.dirty
+        let dirty = self.dirty;
+        env::println(&format!("SyncCacheEntry::is_dirty = {:?}", dirty));
+        dirty
     }
 
     /// Marks the cached value as dirty.
     pub fn mark_dirty(&mut self) {
+        env::println("SyncCacheEntry::mark_dirty");
         self.dirty = true;
     }
 
     /// Marks the cached value as clean.
     pub fn mark_clean(&mut self) {
+        env::println("SyncCacheEntry::mark_clean");
         self.dirty = false;
     }
 
     /// Returns an immutable reference to the synchronized cached value.
     pub fn get(&self) -> Option<&T> {
-        (&*self.cell_val).into()
+        let ret: Option<&T> = (&*self.cell_val).into();
+        env::println(&format!("SyncCacheEntry::get is_some = {:?}", ret.is_some()));
+        ret
     }
 }
 
@@ -108,7 +119,9 @@ impl<T> SyncCacheEntry<T> {
     /// the callee could potentially mutate the value.
     pub fn get_mut(&mut self) -> Option<&mut T> {
         self.mark_dirty();
-        self.cell_val.as_mut().into()
+        let ret: Option<&mut T> = self.cell_val.as_mut().into();
+        env::println(&format!("SyncCacheEntry::get_mut is_some = {:?}", ret.is_some()));
+        ret
     }
 }
 
@@ -123,6 +136,7 @@ pub enum CacheEntry<T> {
 
 impl<T> Default for CacheEntry<T> {
     fn default() -> Self {
+        env::println("CacheEntry::default()");
         CacheEntry::Desync
     }
 }
@@ -130,45 +144,79 @@ impl<T> Default for CacheEntry<T> {
 impl<T> CacheEntry<T> {
     /// Updates the cached value.
     pub fn update(&mut self, new_val: Option<T>) {
+        env::println("CacheEntry::update()");
         match self {
             CacheEntry::Desync => {
+                env::println("CacheEntry::update() - CacheEntry::Desync 1");
                 *self = CacheEntry::Sync(SyncCacheEntry::new(new_val));
+                env::println("CacheEntry::update() - CacheEntry::Desync 2");
             }
             CacheEntry::Sync(sync_entry) => {
+                env::println("CacheEntry::update() - CacheEntry::Sync(_) 1");
                 sync_entry.update(new_val);
+                env::println("CacheEntry::update() - CacheEntry::Sync(_) 2");
             }
         }
     }
 
     /// Returns `true` if the cache is in sync.
     pub fn is_synced(&self) -> bool {
+        env::println("CacheEntry::is_synced()");
         match self {
-            CacheEntry::Sync(_) => true,
-            _ => false,
+            CacheEntry::Sync(_) => {
+                env::println("CacheEntry::is_synced() -> true");
+                true
+            },
+            _ => {
+                env::println("CacheEntry::is_synced() -> false");
+                false
+            },
         }
     }
 
     /// Returns `true` if the cache is dirty.
     pub fn is_dirty(&self) -> bool {
+        env::println("CacheEntry::is_dirty()");
         match self {
-            CacheEntry::Desync => false,
-            CacheEntry::Sync(sync_entry) => sync_entry.is_dirty(),
+            CacheEntry::Desync => {
+                env::println("CacheEntry::is_dirty() -> true");
+                false
+            },
+            CacheEntry::Sync(sync_entry) => {
+                let dirty = sync_entry.is_dirty();
+                env::println(&format!("CacheEntry::is_dirty() -> {:?}", dirty));
+                dirty
+            },
         }
     }
 
     /// Marks the cache as dirty.
     pub fn mark_dirty(&mut self) {
+        env::println("CacheEntry::mark_dirty()");
         match self {
-            CacheEntry::Sync(sync_entry) => sync_entry.mark_dirty(),
-            CacheEntry::Desync => (),
+            CacheEntry::Sync(sync_entry) => {
+                env::println("CacheEntry::mark_dirty() - Sync(_)");
+                sync_entry.mark_dirty()
+            },
+            CacheEntry::Desync => {
+                env::println("CacheEntry::mark_dirty() - Desync");
+                ()
+            },
         }
     }
 
     /// Marks the cache as clean.
     pub fn mark_clean(&mut self) {
+        env::println("CacheEntry::mark_clean()");
         match self {
-            CacheEntry::Sync(sync_entry) => sync_entry.mark_clean(),
-            CacheEntry::Desync => (),
+            CacheEntry::Sync(sync_entry) => {
+                env::println("CacheEntry::mark_clean() - Sync(_)");
+                sync_entry.mark_clean()
+            },
+            CacheEntry::Desync => {
+                env::println("CacheEntry::mark_clean() - Desync");
+                ()
+            },
         }
     }
 
@@ -178,14 +226,19 @@ impl<T> CacheEntry<T> {
     ///
     /// If the cache is in desync state and thus has no cached entity.
     pub fn get(&self) -> Option<&T> {
+        env::println("CacheEntry::get()");
         match self {
             CacheEntry::Desync => {
+                env::println("CacheEntry::get() Desync -> PANIC");
                 panic!(
                     "[pdsl_core::sync_cell::CacheEntry::get] Error: \
                      tried to get the value from a desync cache"
                 )
             }
-            CacheEntry::Sync(sync_entry) => sync_entry.get(),
+            CacheEntry::Sync(sync_entry) => {
+                env::println("CacheEntry::get() Sync(_) -> ok");
+                sync_entry.get()
+            },
         }
     }
 
@@ -195,14 +248,19 @@ impl<T> CacheEntry<T> {
     ///
     /// If the cache is in desync state and thus has no cached entity.
     pub fn get_mut(&mut self) -> Option<&mut T> {
+        env::println("CacheEntry::get_mut()");
         match self {
             CacheEntry::Desync => {
+                env::println("CacheEntry::get_mut() Desync -> PANIC");
                 panic!(
                     "[pdsl_core::sync_cell::CacheEntry::get_mut] Error: \
                      tried to get the value from a desync cache"
                 )
             }
-            CacheEntry::Sync(sync_entry) => sync_entry.get_mut(),
+            CacheEntry::Sync(sync_entry) => {
+                env::println("CacheEntry::get_mut() Sync(_) -> ok");
+                sync_entry.get_mut()
+            },
         }
     }
 }
@@ -216,6 +274,7 @@ pub struct Cache<T> {
 
 impl<T> Default for Cache<T> {
     fn default() -> Self {
+        env::println("CacheEntry::default()");
         Self {
             entry: Default::default(),
         }
@@ -230,33 +289,46 @@ impl<T> Cache<T> {
     /// - The cache will be in sync after this operation.
     /// - The cache will not be dirty after this operation.
     pub fn update(&self, new_val: Option<T>) {
+        env::println("Cache::update() 1");
         self.entry.borrow_mut().update(new_val);
+        env::println("Cache::update() 2");
     }
 
     /// Returns `true` if the cache is in sync.
     pub fn is_synced(&self) -> bool {
-        self.entry.borrow().is_synced()
+        env::println("Cache::is_synced() 1");
+        let ret = self.entry.borrow().is_synced();
+        env::println("Cache::is_synced() 2");
+        ret
     }
 
     /// Returns `true` if the cache is dirty.
     pub fn is_dirty(&self) -> bool {
-        self.entry.borrow().is_dirty()
+        env::println("Cache::is_dirty() 1");
+        let dirty = self.entry.borrow().is_dirty();
+        env::println("Cache::is_dirty() 2");
+        dirty
     }
 
     /// Marks the cache dirty.
     pub fn mark_dirty(&mut self) {
-        self.entry.borrow_mut().mark_dirty()
+        env::println("Cache::mark_dirty() 1");
+        self.entry.borrow_mut().mark_dirty();
+        env::println("Cache::mark_dirty() 2");
     }
 
     /// Marks the cache clean.
     pub fn mark_clean(&mut self) {
-        self.entry.borrow_mut().mark_clean()
+        env::println("Cache::mark_clean() 1");
+        self.entry.borrow_mut().mark_clean();
+        env::println("Cache::mark_clean() 2");
     }
 
     /// Returns an immutable reference to the internal cache entry.
     ///
     /// Used to returns references from the inside to the outside.
     fn get_entry(&self) -> &CacheEntry<T> {
+        env::println("Cache::get_entry()");
         unsafe { &*self.entry.as_ptr() }
     }
 
@@ -264,6 +336,7 @@ impl<T> Cache<T> {
     ///
     /// Used to returns references from the inside to the outside.
     fn get_entry_mut(&mut self) -> &mut CacheEntry<T> {
+        env::println("Cache::get_entry_mut()");
         unsafe { &mut *self.entry.as_ptr() }
     }
 
@@ -273,6 +346,7 @@ impl<T> Cache<T> {
     ///
     /// If the cache is desnyc and thus has no synchronized value.
     pub fn get(&self) -> Option<&T> {
+        env::println("Cache::get()");
         self.get_entry().get()
     }
 
@@ -282,18 +356,22 @@ impl<T> Cache<T> {
     ///
     /// If the cache is desnyc and thus has no synchronized value.
     pub fn get_mut(&mut self) -> Option<&mut T> {
+        env::println("Cache::get_mut()");
         self.get_entry_mut().get_mut()
     }
 }
 
 impl<T> parity_codec::Encode for SyncCell<T> {
     fn encode_to<W: parity_codec::Output>(&self, dest: &mut W) {
-        self.cell.encode_to(dest)
+        env::println("SyncCell::encode_to() 1");
+        self.cell.encode_to(dest);
+        env::println("SyncCell::encode_to() 2");
     }
 }
 
 impl<T> parity_codec::Decode for SyncCell<T> {
     fn decode<I: parity_codec::Input>(input: &mut I) -> Option<Self> {
+        env::println("SyncCell::decode()");
         TypedCell::decode(input).map(|typed_cell| {
             Self {
                 cell: typed_cell,
@@ -308,13 +386,26 @@ where
     T: parity_codec::Encode,
 {
     fn flush(&mut self) {
+        env::println("SyncCell::flush() 1");
         if self.cache.is_dirty() {
+            env::println("SyncCell::flush() is_dirty 1");
             match self.cache.get() {
-                Some(val) => self.cell.store(val),
-                None => self.cell.clear(),
+                Some(val) => {
+                    env::println("SyncCell::flush() is_dirty - some 1");
+                    self.cell.store(val);
+                    env::println("SyncCell::flush() is_dirty - some 2");
+                },
+                None => {
+                    env::println("SyncCell::flush() is_dirty - none 1");
+                    self.cell.clear();
+                    env::println("SyncCell::flush() is_dirty - none 2");
+                },
             }
+            env::println("SyncCell::flush() is_dirty 2");
             self.cache.mark_clean();
+            env::println("SyncCell::flush() is_dirty 3");
         }
+        env::println("SyncCell::flush() 2");
     }
 }
 
@@ -323,6 +414,7 @@ impl<T> AllocateUsing for SyncCell<T> {
     where
         A: Allocate,
     {
+        env::println("SyncCell::allocate_using() 1");
         Self {
             cell: TypedCell::allocate_using(alloc),
             cache: Default::default(),
@@ -333,8 +425,11 @@ impl<T> AllocateUsing for SyncCell<T> {
 impl<T> SyncCell<T> {
     /// Removes the value from the cell.
     pub fn clear(&mut self) {
+        env::println("SyncCell::clear() 1");
         self.cache.update(None);
+        env::println("SyncCell::clear() 2");
         self.cache.mark_dirty();
+        env::println("SyncCell::clear() 3");
     }
 }
 
@@ -344,11 +439,18 @@ where
 {
     /// Returns an immutable reference to the value of the cell.
     pub fn get(&self) -> Option<&T> {
+        env::println("SyncCell::get() 1");
         if !self.cache.is_synced() {
+            env::println("SyncCell::get() is_synced 1");
             let loaded = self.cell.load();
+            env::println("SyncCell::get() is_synced 2");
             self.cache.update(loaded);
+            env::println("SyncCell::get() is_synced 3");
         }
-        self.cache.get()
+        env::println("SyncCell::get() 2");
+        let ret = self.cache.get();
+        env::println("SyncCell::get() 3");
+        ret
     }
 }
 
@@ -358,8 +460,11 @@ where
 {
     /// Sets the value of the cell.
     pub fn set(&mut self, val: T) {
+        env::println("SyncCell::set() 1");
         self.cache.update(Some(val));
+        env::println("SyncCell::set() 2");
         self.cache.mark_dirty();
+        env::println("SyncCell::set() 3");
     }
 }
 
@@ -369,12 +474,20 @@ where
 {
     /// Returns a mutable reference to the value of the cell.
     pub fn get_mut(&mut self) -> Option<&mut T> {
+        env::println("SyncCell::get_mut() 1");
         if !self.cache.is_synced() {
+            env::println("SyncCell::get_mut() is_synced 1");
             let loaded = self.cell.load();
+            env::println("SyncCell::get_mut() is_synced 2");
             self.cache.update(loaded);
+            env::println("SyncCell::get_mut() is_synced 3");
         }
+        env::println("SyncCell::get_mut() 2");
         self.cache.mark_dirty();
-        self.cache.get_mut()
+        env::println("SyncCell::get_mut() 3");
+        let ret = self.cache.get_mut();
+        env::println("SyncCell::get_mut() 4");
+        ret
     }
 
     /// Mutates the value stored in the cell.
@@ -385,10 +498,14 @@ where
     where
         F: FnOnce(&mut T),
     {
+        env::println("SyncCell::mutate_with() 1");
         if let Some(value) = self.get_mut() {
+            env::println("SyncCell::mutate_with() - Some(_) 1");
             f(value);
+            env::println("SyncCell::mutate_with() - Some(_) 2");
             return Some(&*value)
         }
+        env::println("SyncCell::mutate_with() 2");
         None
     }
 }

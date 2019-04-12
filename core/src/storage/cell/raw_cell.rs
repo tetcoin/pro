@@ -64,7 +64,9 @@ impl AllocateUsing for RawCell {
 impl RawCell {
     /// Loads the bytes stored in the cell if not empty.
     pub fn load(&self) -> Option<Vec<u8>> {
-        unsafe { env::load(self.key) }
+        let loaded = unsafe { env::load(self.key) };
+        crate::env::println(&crate::memory::format!("RawCell::load = {:?}", loaded));
+        loaded
     }
 
     /// Stores the given bytes into the cell.

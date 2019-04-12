@@ -97,7 +97,7 @@ impl CallData {
 }
 
 /// A hash to identify a called function.
-#[derive(Copy, Clone, PartialEq, Eq, Decode)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Decode)]
 pub struct MessageHandlerSelector(u32);
 
 impl MessageHandlerSelector {
@@ -303,11 +303,16 @@ macro_rules! impl_handle_call_for_chain {
                 env: &mut ExecutionEnv<State>,
                 data: CallData,
             ) -> Result<Vec<u8>> {
+                pdsl_core::env::println("model::HandleCall::handle_call 1");
                 let args = <Msg as Message>::Input::decode(&mut &data.params()[..])
                     .ok_or(Error::InvalidArguments)?;
+                pdsl_core::env::println("model::HandleCall::handle_call 2");
                 let result = (self.raw_handler)(env, args);
+                pdsl_core::env::println("model::HandleCall::handle_call 3");
                 if $requires_flushing {
-                    env.state.flush()
+                    pdsl_core::env::println("model::HandleCall::handle_call flush 1");
+                    env.state.flush();
+                    pdsl_core::env::println("model::HandleCall::handle_call flush 2");
                 }
                 use parity_codec::Encode;
                 Ok(result.encode())
@@ -326,10 +331,19 @@ macro_rules! impl_handle_call_for_chain {
                 env: &mut ExecutionEnv<State>,
                 data: CallData,
             ) -> Result<Vec<u8>> {
+                use pdsl_core::memory::format;
+                pdsl_core::env::println(
+                    &format!("model::ChainedHandleCall::handle_call\
+                        \n    -> data.selector = {:?}\
+                        \n    -> msg.selector = {:?}",
+                        data.selector(),
+                        $msg_handler_kind::<Msg, State>::selector()));
                 let (handler, rest) = self;
                 if $msg_handler_kind::<Msg, State>::selector() == data.selector() {
+                    pdsl_core::env::println("model::ChainedHandleCall::handle_call ok");
                     handler.handle_call(env, data)
                 } else {
+                    pdsl_core::env::println("model::ChainedHandleCall::handle_call 1");
                     rest.handle_call(env, data)
                 }
             }
@@ -339,3 +353,38 @@ macro_rules! impl_handle_call_for_chain {
 
 impl_handle_call_for_chain!(MessageHandler, requires_flushing: false);
 impl_handle_call_for_chain!(MessageHandlerMut, requires_flushing: true);
+
+#[cfg(test)]
+#[allow(unused)]
+mod tests {
+    use super::*;
+    use crate::ExecutionEnv;
+
+    state! {
+        struct DummyState {}
+    }
+
+    fn exec_env() -> ExecutionEnv<DummyState> {
+        use pdsl_core::{
+            storage::{Key, alloc::AllocateUsing, alloc::Initialize, alloc::BumpAlloc},
+        };
+        unsafe {
+            let mut alloc = BumpAlloc::from_raw_parts(Key([0x0; 32]));
+            ExecutionEnv::allocate_using(&mut alloc).initialize_into(())
+        }
+    }
+
+    #[test]
+    fn unreachable_handler() {
+        struct DummyMsg;
+        impl Message for DummyMsg {
+            type Input = ();
+            type Output = ();
+            const ID: MessageHandlerSelector = MessageHandlerSelector(123);
+            const NAME: &'static str = "DummyMsg";
+        }
+        let mut exec_env = exec_env();
+        let call_data = CallData::from_msg::<DummyMsg>(());
+        assert!(UnreachableMessageHandler.handle_call(&mut exec_env, call_data).is_err());
+    }
+}

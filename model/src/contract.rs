@@ -235,6 +235,7 @@ where
     /// This assocates the state with the contract storage
     /// and defines its layout.
     pub fn instantiate(self) -> ContractInstance<State, DeployArgs, HandlerChain> {
+        pdsl_core::env::println("model::ContractDecl::instantiate 0");
         use pdsl_core::storage::{
             alloc::{
                 AllocateUsing,
@@ -257,6 +258,7 @@ where
             let mut alloc = BumpAlloc::from_raw_parts(Key([0x0; 32]));
             AllocateUsing::allocate_using(&mut alloc)
         };
+        pdsl_core::env::println("model::ContractDecl::instantiate 1");
         ContractInstance {
             env,
             deployer: self.deployer,
@@ -356,13 +358,16 @@ where
     /// Accessing uninitialized contract state can end in trapping execution
     /// or in the worst case in undefined behaviour.
     fn deploy(self) {
+        pdsl_core::env::println("model::ContractInstance::deploy 0");
         // Deploys the contract state.
         //
         // Should be performed exactly once during contract lifetime.
         // Consumes the contract since nothing should be done afterwards.
         let input = pdsl_core::env::input();
+        pdsl_core::env::println("model::ContractInstance::deploy 1");
         let mut this = self;
-        this.deploy_with(input.as_slice())
+        this.deploy_with(input.as_slice());
+        pdsl_core::env::println("model::ContractInstance::deploy 2");
         core::mem::forget(this.env);
     }
 
@@ -377,11 +382,15 @@ where
         // action after instantiation.
         //
         // Internally calls the associated call<Msg>.
+        pdsl_core::env::println("model::ContractInstance::dispatch 1");
         use parity_codec::Decode;
         let input = pdsl_core::env::input();
+        pdsl_core::env::println("model::ContractInstance::dispatch 2");
         let call_data = CallData::decode(&mut &input[..]).unwrap();
+        pdsl_core::env::println("model::ContractInstance::dispatch 3");
         let mut this = self;
-        this.call_with_and_return(call_data)
+        this.call_with_and_return(call_data);
+        pdsl_core::env::println("model::ContractInstance::dispatch 4");
         core::mem::forget(this.env);
     }
 }
@@ -406,19 +415,29 @@ where
         //
         // Should be performed exactly once during contract lifetime.
         // Consumes the contract since nothing should be done afterwards.
+        pdsl_core::env::println("model::ContractInstance::deploy_with 1");
         use pdsl_core::storage::alloc::Initialize as _;
         self.env.initialize(());
+        pdsl_core::env::println("model::ContractInstance::deploy_with 2");
         let deploy_params = DeployArgs::decode(&mut &input[..]).unwrap();
+        pdsl_core::env::println("model::ContractInstance::deploy_with 3");
         (self.deployer.deploy_fn)(&mut self.env, deploy_params);
-        self.env.state.flush()
+        pdsl_core::env::println("model::ContractInstance::deploy_with 4");
+        self.env.state.flush();
+        pdsl_core::env::println("model::ContractInstance::deploy_with 5");
     }
 
     /// Calls the message encoded by the given call data
     /// and returns the resulting value back to the caller.
     fn call_with_and_return(&mut self, call_data: CallData) {
+        pdsl_core::env::println("model::ContractInstance::call_with_and_return 1");
         let encoded_result = self.call_with(call_data);
+        pdsl_core::env::println("model::ContractInstance::call_with_and_return 2");
         if !encoded_result.is_empty() {
+            pdsl_core::env::println("model::ContractInstance::call_with_and_return is_empty");
             unsafe { self.env.r#return(encoded_result) }
+        } else {
+            pdsl_core::env::println("model::ContractInstance::call_with_and_return not is_empty");
         }
     }
 
@@ -431,9 +450,16 @@ where
     /// - If the encoded input arguments for the message do not
     ///   match the expected format.
     fn call_with(&mut self, call_data: CallData) -> Vec<u8> {
+        pdsl_core::env::println("model::ContractInstance::call_with 1");
         match self.handlers.handle_call(&mut self.env, call_data) {
-            Ok(encoded_result) => encoded_result,
-            Err(err) => panic!(err.description()),
+            Ok(encoded_result) => {
+                pdsl_core::env::println("model::ContractInstance::call_with ok");
+                encoded_result
+            },
+            Err(err) => {
+                pdsl_core::env::println("model::ContractInstance::call_with err");
+                panic!(err.description())
+            },
         }
     }
 }
