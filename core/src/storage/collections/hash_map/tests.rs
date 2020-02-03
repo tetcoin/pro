@@ -188,3 +188,12 @@ fn mutate_with() -> Result<()> {
         Ok(())
     })
 }
+
+#[quickcheck]
+fn foo1() -> Result<()> {
+    env::test::run_test::<env::DefaultEnvTypes, _>(|_| {
+        let _map = new_empty::<String, String>();
+        Ok(())
+    })
+}
+
