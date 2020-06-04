@@ -17,20 +17,11 @@
 #[cfg(not(feature = "std"))]
 extern crate alloc;
 
-mod layout;
 pub mod layout2;
 mod specs;
 mod utils;
 
 pub use self::{
-    layout::{
-        HasLayout,
-        LayoutField,
-        LayoutKey,
-        LayoutRange,
-        LayoutStruct,
-        StorageLayout,
-    },
     specs::{
         ConstructorSpec,
         ConstructorSpecBuilder,
