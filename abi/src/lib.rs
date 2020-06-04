@@ -18,10 +18,9 @@
 extern crate alloc;
 
 mod layout;
+pub mod layout2;
 mod specs;
-
-#[cfg(feature = "derive")]
-pub use ink_abi_derive::HasLayout;
+mod utils;
 
 pub use self::{
     layout::{
@@ -50,7 +49,8 @@ pub use self::{
         TypeSpec,
     },
 };
-
+#[cfg(feature = "derive")]
+pub use ink_abi_derive::HasLayout;
 use serde::Serialize;
 use type_metadata::{
     form::CompactForm,
@@ -63,7 +63,7 @@ use type_metadata::{
 pub struct InkProject {
     registry: Registry,
     #[serde(rename = "storage")]
-    layout: StorageLayout<CompactForm>,
+    layout: layout2::Layout<CompactForm>,
     #[serde(rename = "contract")]
     spec: ContractSpec<CompactForm>,
 }
@@ -72,7 +72,7 @@ impl InkProject {
     /// Creates a new ink! project.
     pub fn new<L, S>(layout: L, spec: S) -> Self
     where
-        L: Into<StorageLayout>,
+        L: Into<layout2::Layout>,
         S: Into<ContractSpec>,
     {
         let mut registry = Registry::new();
