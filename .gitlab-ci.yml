@@ -290,9 +290,25 @@ publish-docs:
     - git config remote.origin.url "https://${GITHUB_TOKEN}@github.com/paritytech/ink.git"
     - git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
     - git fetch origin gh-pages
-    # saving README and docs
+    # Saving docs
     - cp -r ./crate-docs/ /tmp/doc/
+    # Saving readme and render its markdown as HTML
     - cp README.md /tmp/doc/
+    - |
+        curl -X "POST" "https://api.github.com/markdown" \
+        -H "Cookie: logged_in=no" \
+        -H "Authorization: token ${GITHUB_TOKEN}" \
+        -H "Content-Type: text/plain; charset=utf-8" \
+        -H "Accept: application/vnd.github.v3+json" \
+        --data-binary "@README.md"
+    - |
+        curl -X "POST" "https://api.github.com/markdown" \
+        -H "Cookie: logged_in=no" \
+        -H "Authorization: token ${GITHUB_TOKEN}" \
+        -H "Content-Type: text/plain; charset=utf-8" \
+        -H "Accept: application/vnd.github.v3+json" \
+        --data-binary "@README.md" \
+        > README.md
     - git checkout gh-pages
     - mv _config.yml /tmp/doc/
     # remove everything and restore generated docs, README and Jekyll config
