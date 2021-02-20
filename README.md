@@ -4,7 +4,7 @@
     Tetsy pro! for writing smart contracts
 </h1>
 
-[![linux][a1]][a2] [![codecov][c1]][c2] [![coveralls][d1]][d2] [![loc][e1]][e2] [![matrix][k1]][k2] [![discord][l1]][l2]
+[![codecov][c1]][c2] [![coveralls][d1]][d2] [![loc][e1]][e2] [![matrix][k1]][k2] [![discord][l1]][l2]
 
 [a1]: https://gitlab.tetcoin.org/tetcoin/pro/badges/master/pipeline.svg
 [a2]: https://gitlab.tetcoin.org/tetcoin/pro/pipelines?ref=master
