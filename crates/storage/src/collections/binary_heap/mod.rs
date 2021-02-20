@@ -107,7 +107,7 @@ where
     /// # Example
     ///
     /// ```
-    /// use ink_storage::collections::BinaryHeap;
+    /// use pro_storage::collections::BinaryHeap;
     /// let mut heap = BinaryHeap::new();
     /// assert!(heap.peek_mut().is_none());
     ///

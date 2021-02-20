@@ -1,27 +1,27 @@
 [package]
-name = "ink_metadata"
+name = "pro_metadata"
 version = "3.0.0-rc2"
 authors = ["Parity Technologies <admin@parity.io>", "Robin Freyler <robin@parity.io>"]
 edition = "2018"
 
 license = "Apache-2.0"
 readme = "README.md"
-repository = "https://github.com/paritytech/ink"
-documentation = "https://docs.rs/ink_metadata/"
-homepage = "https://www.parity.io/"
-description = "[ink!] Metadata definitions for ink! smart contracts."
-keywords = ["wasm", "parity", "webassembly", "blockchain", "edsl"]
+repository = "https://github.com/tetcoin/pro"
+documentation = "https://docs.rs/pro_metadata/"
+homepage = "https://tetcoin.org/"
+description = "[pro!] Metadata definitions for pro! smart contracts."
+keywords = ["wasm", "tetcoin", "webassembly", "blockchain", "edsl"]
 categories = ["no-std", "embedded"]
 include = ["Cargo.toml", "src/**/*.rs", "README.md", "LICENSE"]
 
 [dependencies]
-ink_prelude = { version = "3.0.0-rc2", path = "../prelude/", default-features = false }
-ink_primitives = { version = "3.0.0-rc2", path = "../primitives/", default-features = false }
+pro_prelude = { version = "3.0.0-rc2", path = "../prelude/", default-features = false }
+pro_primitives = { version = "3.0.0-rc2", path = "../primitives/", default-features = false }
 
 serde = { version = "1.0", default-features = false, features = ["derive", "alloc"] }
 impl-serde = "0.3.1"
 derive_more = { version = "0.99", default-features = false, features = ["from"] }
-scale-info = { version = "0.5", default-features = false, features = ["derive", "serde"] }
+tetsy-scale-info = { version = "0.5.1", default-features = false, features = ["derive", "serde"] }
 
 [dev-dependencies]
 pretty_assertions = "0.6.1"
@@ -33,8 +33,8 @@ default = [
     "derive",
 ]
 std = [
-    "ink_prelude/std",
+    "pro_prelude/std",
     "serde/std",
-    "scale-info/std",
+    "tetsy-scale-info/std",
 ]
 derive = []

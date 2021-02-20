@@ -27,7 +27,7 @@ use proc_macro2::{
 };
 use syn::spanned::Spanned as _;
 
-/// An ink! constructor definition.
+/// An pro! constructor definition.
 ///
 /// # Example
 ///
@@ -35,9 +35,9 @@ use syn::spanned::Spanned as _;
 ///
 /// ```
 /// # use core::convert::TryFrom;
-/// # let event = <ink_lang_ir::ItemImpl as TryFrom<syn::ItemImpl>>::try_from(syn::parse_quote! {
+/// # let event = <pro_lang_ir::ItemImpl as TryFrom<syn::ItemImpl>>::try_from(syn::parse_quote! {
 /// impl MyStorage {
-///     #[ink(constructor)]
+///     #[pro(constructor)]
 ///     pub fn new(init_value: i32) -> Self {
 ///         /* contract initialization goes here */
 /// #       unimplemented!()
@@ -50,9 +50,9 @@ use syn::spanned::Spanned as _;
 ///
 /// ```
 /// # use core::convert::TryFrom;
-/// # <ink_lang_ir::ItemImpl as TryFrom<syn::ItemImpl>>::try_from(syn::parse_quote! {
+/// # <pro_lang_ir::ItemImpl as TryFrom<syn::ItemImpl>>::try_from(syn::parse_quote! {
 /// impl MyTrait for MyStorage {
-///     #[ink(constructor)]
+///     #[pro(constructor)]
 ///     fn new(init_value: i32) -> Self {
 ///         /* contract initialization goes here */
 /// #       unimplemented!()
@@ -74,7 +74,7 @@ pub struct Constructor {
 }
 
 impl quote::ToTokens for Constructor {
-    /// We mainly implement this trait for this ink! type to have a derived
+    /// We mainly implement this trait for this pro! type to have a derived
     /// [`Spanned`](`syn::spanned::Spanned`) implementation for it.
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         self.item.to_tokens(tokens)
@@ -90,13 +90,13 @@ impl Constructor {
         }) if path.is_ident("Self"))
     }
 
-    /// Ensures that the return type of the ink! constructor is `Self`.
+    /// Ensures that the return type of the pro! constructor is `Self`.
     ///
     /// Returns an appropriate error otherwise.
     ///
     /// # Errors
     ///
-    /// If the ink! constructor does not return `Self` or is missing a return
+    /// If the pro! constructor does not return `Self` or is missing a return
     /// type entirely.
     fn ensure_valid_return_type(
         method_item: &syn::ImplItemMethod,
@@ -105,14 +105,14 @@ impl Constructor {
             syn::ReturnType::Default => {
                 return Err(format_err_spanned!(
                     &method_item.sig,
-                    "missing return for ink! constructor",
+                    "missing return for pro! constructor",
                 ))
             }
             syn::ReturnType::Type(_, return_type) => {
                 if !Self::type_is_self_val(return_type.as_ref()) {
                     return Err(format_err_spanned!(
                         return_type,
-                        "ink! constructors must return Self",
+                        "pro! constructors must return Self",
                     ))
                 }
             }
@@ -120,13 +120,13 @@ impl Constructor {
         Ok(())
     }
 
-    /// Ensures that the ink! constructor has no `self` receiver.
+    /// Ensures that the pro! constructor has no `self` receiver.
     ///
     /// Returns an appropriate error otherwise.
     ///
     /// # Errors
     ///
-    /// If the ink! constructor has a `&self`, `&mut self`, `self` or any other
+    /// If the pro! constructor has a `&self`, `&mut self`, `self` or any other
     /// kind of a `self` receiver as first argument.
     fn ensure_no_self_receiver(
         method_item: &syn::ImplItemMethod,
@@ -136,19 +136,19 @@ impl Constructor {
             Some(syn::FnArg::Receiver(receiver)) => {
                 return Err(format_err_spanned!(
                     receiver,
-                    "ink! constructors must have no `self` receiver",
+                    "pro! constructors must have no `self` receiver",
                 ))
             }
         }
         Ok(())
     }
 
-    /// Sanitizes the attributes for the ink! constructor.
+    /// Sanitizes the attributes for the pro! constructor.
     ///
-    /// Returns a tuple of ink! attributes and non-ink! attributes.
+    /// Returns a tuple of pro! attributes and non-pro! attributes.
     fn sanitize_attributes(
         method_item: &syn::ImplItemMethod,
-    ) -> Result<(ir::InkAttribute, Vec<syn::Attribute>), syn::Error> {
+    ) -> Result<(ir::ProAttribute, Vec<syn::Attribute>), syn::Error> {
         ir::sanitize_attributes(
             method_item.span(),
             method_item.attrs.clone(),
@@ -178,8 +178,8 @@ impl TryFrom<syn::ImplItemMethod> for Constructor {
         ensure_callable_invariants(&method_item, CallableKind::Constructor)?;
         Self::ensure_valid_return_type(&method_item)?;
         Self::ensure_no_self_receiver(&method_item)?;
-        let (ink_attrs, other_attrs) = Self::sanitize_attributes(&method_item)?;
-        let selector = ink_attrs.selector();
+        let (pro_attrs, other_attrs) = Self::sanitize_attributes(&method_item)?;
+        let selector = pro_attrs.selector();
         Ok(Constructor {
             selector,
             item: syn::ImplItemMethod {
@@ -211,7 +211,7 @@ impl Callable for Constructor {
         match &self.item.vis {
             syn::Visibility::Public(vis_public) => Visibility::Public(vis_public.clone()),
             syn::Visibility::Inherited => Visibility::Inherited,
-            _ => unreachable!("encountered invalid visibility for ink! constructor"),
+            _ => unreachable!("encountered invalid visibility for pro! constructor"),
         }
     }
 
@@ -229,7 +229,7 @@ impl Callable for Constructor {
 }
 
 impl Constructor {
-    /// Returns a slice of all non-ink! attributes of the ink! constructor.
+    /// Returns a slice of all non-pro! attributes of the pro! constructor.
     pub fn attrs(&self) -> &[syn::Attribute] {
         &self.item.attrs
     }
@@ -257,7 +257,7 @@ mod tests {
                 // No inputs:
                 expected_inputs!(),
                 syn::parse_quote! {
-                    #[ink(constructor)]
+                    #[pro(constructor)]
                     fn my_constructor() -> Self {}
                 },
             ),
@@ -265,7 +265,7 @@ mod tests {
                 // Single input:
                 expected_inputs!(a: i32),
                 syn::parse_quote! {
-                    #[ink(constructor)]
+                    #[pro(constructor)]
                     fn my_constructor(a: i32) -> Self {}
                 },
             ),
@@ -273,7 +273,7 @@ mod tests {
                 // Some inputs:
                 expected_inputs!(a: i32, b: u64, c: [u8; 32]),
                 syn::parse_quote! {
-                    #[ink(constructor)]
+                    #[pro(constructor)]
                     fn my_constructor(a: i32, b: u64, c: [u8; 32]) -> Self {}
                 },
             ),
@@ -296,7 +296,7 @@ mod tests {
             (
                 false,
                 syn::parse_quote! {
-                    #[ink(constructor)]
+                    #[pro(constructor)]
                     fn my_constructor() -> Self {}
                 },
             ),
@@ -304,7 +304,7 @@ mod tests {
             (
                 true,
                 syn::parse_quote! {
-                    #[ink(constructor)]
+                    #[pro(constructor)]
                     pub fn my_constructor() -> Self {}
                 },
             ),
@@ -323,17 +323,17 @@ mod tests {
         let item_methods: Vec<syn::ImplItemMethod> = vec![
             // simple + inherited visibility
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 fn my_constructor() -> Self {}
             },
             // simple + public visibility
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 pub fn my_constructor() -> Self {}
             },
             // many inputs
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 fn my_constructor(input1: i32, input2: i64, input3: u32, input4: u64) -> Self {}
             },
         ];
@@ -354,16 +354,16 @@ mod tests {
     fn try_from_missing_return_fails() {
         let item_methods: Vec<syn::ImplItemMethod> = vec![
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 fn my_constructor() {}
             },
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 pub fn my_constructor() {}
             },
         ];
         for item_method in item_methods {
-            assert_try_from_fails(item_method, "missing return for ink! constructor")
+            assert_try_from_fails(item_method, "missing return for pro! constructor")
         }
     }
 
@@ -371,24 +371,24 @@ mod tests {
     fn try_from_invalid_return_fails() {
         let item_methods: Vec<syn::ImplItemMethod> = vec![
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 fn my_constructor() -> &Self {}
             },
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 pub fn my_constructor() -> &mut Self {}
             },
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 pub fn my_constructor() -> i32 {}
             },
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 pub fn my_constructor() -> Result<Self, ()> {}
             },
         ];
         for item_method in item_methods {
-            assert_try_from_fails(item_method, "ink! constructors must return Self")
+            assert_try_from_fails(item_method, "pro! constructors must return Self")
         }
     }
 
@@ -396,26 +396,26 @@ mod tests {
     fn try_from_invalid_self_receiver_fails() {
         let item_methods: Vec<syn::ImplItemMethod> = vec![
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 fn my_constructor(&self) -> Self {}
             },
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 pub fn my_constructor(&mut self) -> Self {}
             },
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 pub fn my_constructor(self) -> Self {}
             },
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 pub fn my_constructor(mut self) -> Self {}
             },
         ];
         for item_method in item_methods {
             assert_try_from_fails(
                 item_method,
-                "ink! constructors must have no `self` receiver",
+                "pro! constructors must have no `self` receiver",
             )
         }
     }
@@ -424,16 +424,16 @@ mod tests {
     fn try_from_generics_fails() {
         let item_methods: Vec<syn::ImplItemMethod> = vec![
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 fn my_constructor<T>() -> Self {}
             },
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 pub fn my_constructor<T>() -> Self {}
             },
         ];
         for item_method in item_methods {
-            assert_try_from_fails(item_method, "ink! constructors must not be generic")
+            assert_try_from_fails(item_method, "pro! constructors must not be generic")
         }
     }
 
@@ -441,16 +441,16 @@ mod tests {
     fn try_from_const_fails() {
         let item_methods: Vec<syn::ImplItemMethod> = vec![
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 const fn my_constructor() -> Self {}
             },
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 pub const fn my_constructor() -> Self {}
             },
         ];
         for item_method in item_methods {
-            assert_try_from_fails(item_method, "ink! constructors must not be const")
+            assert_try_from_fails(item_method, "pro! constructors must not be const")
         }
     }
 
@@ -458,16 +458,16 @@ mod tests {
     fn try_from_async_fails() {
         let item_methods: Vec<syn::ImplItemMethod> = vec![
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 async fn my_constructor() -> Self {}
             },
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 async fn my_constructor() -> Self {}
             },
         ];
         for item_method in item_methods {
-            assert_try_from_fails(item_method, "ink! constructors must not be async")
+            assert_try_from_fails(item_method, "pro! constructors must not be async")
         }
     }
 
@@ -475,16 +475,16 @@ mod tests {
     fn try_from_unsafe_fails() {
         let item_methods: Vec<syn::ImplItemMethod> = vec![
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 unsafe fn my_constructor() -> Self {}
             },
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 unsafe fn my_constructor() -> Self {}
             },
         ];
         for item_method in item_methods {
-            assert_try_from_fails(item_method, "ink! constructors must not be unsafe")
+            assert_try_from_fails(item_method, "pro! constructors must not be unsafe")
         }
     }
 
@@ -492,16 +492,16 @@ mod tests {
     fn try_from_explicit_abi_fails() {
         let item_methods: Vec<syn::ImplItemMethod> = vec![
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 extern "C" fn my_constructor() -> Self {}
             },
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 extern "C" fn my_constructor() -> Self {}
             },
         ];
         for item_method in item_methods {
-            assert_try_from_fails(item_method, "ink! constructors must have explicit ABI")
+            assert_try_from_fails(item_method, "pro! constructors must have explicit ABI")
         }
     }
 
@@ -509,16 +509,16 @@ mod tests {
     fn try_from_variadic_fails() {
         let item_methods: Vec<syn::ImplItemMethod> = vec![
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 fn my_constructor(...) -> Self {}
             },
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 fn my_constructor(...) -> Self {}
             },
         ];
         for item_method in item_methods {
-            assert_try_from_fails(item_method, "ink! constructors must not be variadic")
+            assert_try_from_fails(item_method, "pro! constructors must not be variadic")
         }
     }
 
@@ -526,18 +526,18 @@ mod tests {
     fn try_from_visibility_fails() {
         let item_methods: Vec<syn::ImplItemMethod> = vec![
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 crate fn my_constructor() -> Self {}
             },
             syn::parse_quote! {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 pub(in my::path) fn my_constructor() -> Self {}
             },
         ];
         for item_method in item_methods {
             assert_try_from_fails(
                 item_method,
-                "ink! constructors must have public or inherited visibility",
+                "pro! constructors must have public or inherited visibility",
             )
         }
     }
@@ -547,31 +547,31 @@ mod tests {
         let item_methods: Vec<syn::ImplItemMethod> = vec![
             // storage
             syn::parse_quote! {
-                #[ink(constructor, storage)]
+                #[pro(constructor, storage)]
                 fn my_constructor() -> Self {}
             },
             // namespace
             syn::parse_quote! {
-                #[ink(constructor, namespace = "my_namespace")]
+                #[pro(constructor, namespace = "my_namespace")]
                 fn my_constructor() -> Self {}
             },
             // event + multiple attributes
             syn::parse_quote! {
-                #[ink(constructor)]
-                #[ink(event)]
+                #[pro(constructor)]
+                #[pro(event)]
                 fn my_constructor() -> Self {}
             },
             // constructor + payable
             syn::parse_quote! {
-                #[ink(constructor)]
-                #[ink(payable)]
+                #[pro(constructor)]
+                #[pro(payable)]
                 fn my_constructor() -> Self {}
             },
         ];
         for item_method in item_methods {
             assert_try_from_fails(
                 item_method,
-                "encountered conflicting ink! attribute argument",
+                "encountered conflicting pro! attribute argument",
             )
         }
     }

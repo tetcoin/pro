@@ -26,8 +26,8 @@ use crate::{
 };
 use core::cell::Cell;
 use derive_more::From;
-use ink_prelude::collections::BTreeMap;
-use ink_primitives::Key;
+use pro_prelude::collections::BTreeMap;
+use pro_primitives::Key;
 
 /// Errors encountered upon interacting with the accounts database.
 #[derive(Debug, From, PartialEq, Eq)]

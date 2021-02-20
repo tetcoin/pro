@@ -37,7 +37,7 @@ cfg_if! {
         };
     } else {
         compile_error! {
-            "ink! only support compilation as `std` or `no_std` + `wasm32-unknown`"
+            "pro! only support compilation as `std` or `no_std` + `wasm32-unknown`"
         }
     }
 }

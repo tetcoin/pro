@@ -23,7 +23,7 @@ mod storage;
 #[cfg(test)]
 mod tests;
 
-#[cfg(all(test, feature = "ink-fuzz-tests"))]
+#[cfg(all(test, feature = "pro-fuzz-tests"))]
 mod fuzz_tests;
 
 use self::counts::CountFree;

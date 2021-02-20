@@ -1,21 +1,21 @@
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract]
+#[pro::contract]
 mod forbidden_indents {
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct ForbiddenIndents {}
 
     impl ForbiddenIndents {
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn constructor() -> Self {
             Self {}
         }
 
-        /// An ink! message starting with __ink_ prefix.
-        #[ink(message)]
-        pub fn __ink_message(&self) {
-            // All identifiers starting with `__ink_` are forbidden to use in ink!.
-            let __ink_first = ();
+        /// An pro! message starting with __pro_ prefix.
+        #[pro(message)]
+        pub fn __pro_message(&self) {
+            // All identifiers starting with `__pro_` are forbidden to use in pro!.
+            let __pro_first = ();
         }
     }
 }

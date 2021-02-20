@@ -1,17 +1,17 @@
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract(dynamic_storage_allocator = "foo")]
+#[pro::contract(dynamic_storage_allocator = "foo")]
 mod invalid_version {
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct InvalidVersion {}
 
     impl InvalidVersion {
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn constructor() -> Self {
             Self {}
         }
 
-        #[ink(message)]
+        #[pro(message)]
         pub fn message(&self) {}
     }
 }

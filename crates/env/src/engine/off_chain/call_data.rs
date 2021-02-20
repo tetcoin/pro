@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use crate::call::Selector;
-use ink_prelude::{
+use pro_prelude::{
     vec,
     vec::Vec,
 };

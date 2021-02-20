@@ -25,7 +25,7 @@ use quote::{
 };
 use syn::spanned::Spanned as _;
 
-/// Generator to create the ink! storage struct and important trait impls.
+/// Generator to create the pro! storage struct and important trait impls.
 #[derive(From)]
 pub struct Storage<'a> {
     contract: &'a ir::Contract,
@@ -44,7 +44,7 @@ impl GenerateCode for Storage<'_> {
         let storage_struct = self.generate_storage_struct();
         let use_emit_event = if self.contract.module().events().next().is_some() {
             // Required to allow for `self.env().emit_event(..)` in messages and constructors.
-            Some(quote! { use ::ink_lang::EmitEvent as _; })
+            Some(quote! { use ::pro_lang::EmitEvent as _; })
         } else {
             None
         };
@@ -57,7 +57,7 @@ impl GenerateCode for Storage<'_> {
             const _: () = {
                 // Used to make `self.env()` available in message code.
                 #[allow(unused_imports)]
-                use ::ink_lang::{
+                use ::pro_lang::{
                     Env as _,
                     StaticEnv as _,
                 };
@@ -74,16 +74,16 @@ impl Storage<'_> {
         quote! {
             #cfg
             const _: () = {
-                impl<'a> ::ink_lang::Env for &'a #storage_ident {
-                    type EnvAccess = ::ink_lang::EnvAccess<'a, <#storage_ident as ::ink_lang::ContractEnv>::Env>;
+                impl<'a> ::pro_lang::Env for &'a #storage_ident {
+                    type EnvAccess = ::pro_lang::EnvAccess<'a, <#storage_ident as ::pro_lang::ContractEnv>::Env>;
 
                     fn env(self) -> Self::EnvAccess {
                         Default::default()
                     }
                 }
 
-                impl<'a> ::ink_lang::StaticEnv for #storage_ident {
-                    type EnvAccess = ::ink_lang::EnvAccess<'static, <#storage_ident as ::ink_lang::ContractEnv>::Env>;
+                impl<'a> ::pro_lang::StaticEnv for #storage_ident {
+                    type EnvAccess = ::pro_lang::EnvAccess<'static, <#storage_ident as ::pro_lang::ContractEnv>::Env>;
 
                     fn env() -> Self::EnvAccess {
                         Default::default()
@@ -106,9 +106,9 @@ impl Storage<'_> {
             #(#attrs)*
             #[cfg_attr(
                 feature = "std",
-                derive(::ink_storage::traits::StorageLayout)
+                derive(::pro_storage::traits::StorageLayout)
             )]
-            #[derive(::ink_storage::traits::SpreadLayout)]
+            #[derive(::pro_storage::traits::SpreadLayout)]
             #[cfg_attr(test, derive(Debug))]
             pub struct #ident {
                 #( #fields ),*

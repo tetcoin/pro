@@ -19,7 +19,7 @@ use super::{
 };
 use crate::ir;
 
-/// Iterator yielding all ink! constructor within a source ink!
+/// Iterator yielding all pro! constructor within a source pro!
 /// [`ir::ItemImpl`](`crate::ir::ItemImpl`).
 pub struct IterConstructors<'a> {
     item_impl: &'a ir::ItemImpl,
@@ -27,7 +27,7 @@ pub struct IterConstructors<'a> {
 }
 
 impl<'a> IterConstructors<'a> {
-    /// Creates a new ink! messages iterator.
+    /// Creates a new pro! messages iterator.
     pub(super) fn new(item_impl: &'a ItemImpl) -> Self {
         Self {
             item_impl,
@@ -57,7 +57,7 @@ impl<'a> Iterator for IterConstructors<'a> {
     }
 }
 
-/// Iterator yielding all ink! messages within a source ink!
+/// Iterator yielding all pro! messages within a source pro!
 /// [`ir::ItemImpl`](`crate::ir::ItemImpl`).
 pub struct IterMessages<'a> {
     item_impl: &'a ir::ItemImpl,
@@ -65,7 +65,7 @@ pub struct IterMessages<'a> {
 }
 
 impl<'a> IterMessages<'a> {
-    /// Creates a new ink! messages iterator.
+    /// Creates a new pro! messages iterator.
     pub(super) fn new(item_impl: &'a ItemImpl) -> Self {
         Self {
             item_impl,

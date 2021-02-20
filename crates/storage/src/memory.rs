@@ -28,7 +28,7 @@ use core::{
         DerefMut,
     },
 };
-use ink_prelude::borrow::{
+use pro_prelude::borrow::{
     Borrow,
     BorrowMut,
 };
@@ -53,7 +53,7 @@ pub struct Memory<T> {
 #[cfg(feature = "std")]
 const _: () = {
     use crate::traits::StorageLayout;
-    use ink_metadata::layout::{
+    use pro_metadata::layout::{
         CellLayout,
         Layout,
         LayoutKey,
@@ -190,12 +190,12 @@ mod tests {
             DerefMut,
         },
     };
-    use ink_env::test::DefaultAccounts;
-    use ink_prelude::borrow::{
+    use pro_env::test::DefaultAccounts;
+    use pro_prelude::borrow::{
         Borrow,
         BorrowMut,
     };
-    use ink_primitives::Key;
+    use pro_primitives::Key;
 
     type ComplexTuple = (u8, [i32; 4], (bool, i32));
 
@@ -263,9 +263,9 @@ mod tests {
 
     fn run_test<F>(f: F)
     where
-        F: FnOnce(DefaultAccounts<ink_env::DefaultEnvironment>),
+        F: FnOnce(DefaultAccounts<pro_env::DefaultEnvironment>),
     {
-        ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|default_accounts| {
+        pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|default_accounts| {
             f(default_accounts);
             Ok(())
         })

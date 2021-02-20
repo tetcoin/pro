@@ -46,7 +46,7 @@ pub use self::specs::{
 use impl_serde::serialize as serde_hex;
 
 #[cfg(feature = "derive")]
-use scale_info::{
+use tetsy_scale_info::{
     form::{
         FormString,
         PortableForm,
@@ -61,10 +61,10 @@ use serde::{
     Serialize,
 };
 
-/// An entire ink! project for metadata file generation purposes.
+/// An entire pro! project for metadata file generation purposes.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(bound(deserialize = "S: DeserializeOwned"))]
-pub struct InkProject<S: FormString = &'static str> {
+pub struct ProProject<S: FormString = &'static str> {
     #[serde(flatten)]
     registry: PortableRegistry<S>,
     #[serde(rename = "storage")]
@@ -73,7 +73,7 @@ pub struct InkProject<S: FormString = &'static str> {
     spec: ContractSpec<PortableForm<S>>,
 }
 
-impl InkProject {
+impl ProProject {
     pub fn new<L, S>(layout: L, spec: S) -> Self
     where
         L: Into<layout::Layout>,
@@ -89,7 +89,7 @@ impl InkProject {
     }
 }
 
-impl<S> InkProject<S>
+impl<S> ProProject<S>
 where
     S: FormString,
 {

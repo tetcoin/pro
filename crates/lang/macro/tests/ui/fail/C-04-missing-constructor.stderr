@@ -1,8 +1,8 @@
-error: missing ink! constructor
+error: missing pro! constructor
   --> $DIR/C-04-missing-constructor.rs:4:1
    |
 4  | / mod noop {
-5  | |     #[ink(storage)]
+5  | |     #[pro(storage)]
 6  | |     pub struct Noop {}
 7  | |
 ...  |

@@ -13,30 +13,30 @@
 // limitations under the License.
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use ink_env::Environment;
-use ink_lang as ink;
+use pro_env::Environment;
+use pro_lang as pro;
 
-/// This is an example of how ink! contract should
+/// This is an example of how pro! contract should
 /// call substrate runtime `RandomnessCollectiveFlip::random_seed`.
 
 /// Define the operations to interact with the substrate runtime
-#[ink::chain_extension]
+#[pro::chain_extension]
 pub trait FetchRandom {
     type ErrorCode = RandomReadErr;
 
     /// Note: this gives the operation a corresponding func_id (1101 in this case),
     /// and the chain-side chain_extension will get the func_id to do further operations.
-    #[ink(extension = 1101, returns_result = false)]
+    #[pro(extension = 1101, returns_result = false)]
     fn fetch_random() -> [u8; 32];
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, scale::Encode, scale::Decode)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+#[cfg_attr(feature = "std", derive(tetsy_scale_info::TypeInfo))]
 pub enum RandomReadErr {
     FailGetRandomSource,
 }
 
-impl ink_env::chain_extension::FromStatusCode for RandomReadErr {
+impl pro_env::chain_extension::FromStatusCode for RandomReadErr {
     fn from_status_code(status_code: u32) -> Result<(), Self> {
         match status_code {
             0 => Ok(()),
@@ -47,43 +47,43 @@ impl ink_env::chain_extension::FromStatusCode for RandomReadErr {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+#[cfg_attr(feature = "std", derive(tetsy_scale_info::TypeInfo))]
 pub enum CustomEnvironment {}
 
 impl Environment for CustomEnvironment {
     const MAX_EVENT_TOPICS: usize =
-        <ink_env::DefaultEnvironment as Environment>::MAX_EVENT_TOPICS;
+        <pro_env::DefaultEnvironment as Environment>::MAX_EVENT_TOPICS;
 
-    type AccountId = <ink_env::DefaultEnvironment as Environment>::AccountId;
-    type Balance = <ink_env::DefaultEnvironment as Environment>::Balance;
-    type Hash = <ink_env::DefaultEnvironment as Environment>::Hash;
-    type BlockNumber = <ink_env::DefaultEnvironment as Environment>::BlockNumber;
-    type Timestamp = <ink_env::DefaultEnvironment as Environment>::Timestamp;
+    type AccountId = <pro_env::DefaultEnvironment as Environment>::AccountId;
+    type Balance = <pro_env::DefaultEnvironment as Environment>::Balance;
+    type Hash = <pro_env::DefaultEnvironment as Environment>::Hash;
+    type BlockNumber = <pro_env::DefaultEnvironment as Environment>::BlockNumber;
+    type Timestamp = <pro_env::DefaultEnvironment as Environment>::Timestamp;
 
     type ChainExtension = FetchRandom;
 }
 
-#[ink::contract(env = crate::CustomEnvironment)]
+#[pro::contract(env = crate::CustomEnvironment)]
 mod rand_extension {
     use super::RandomReadErr;
 
     /// Defines the storage of your contract.
     /// Here we store the random seed fetched from the chain
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct RandExtension {
         /// Stores a single `bool` value on the storage.
         value: [u8; 32],
     }
 
-    #[ink(event)]
+    #[pro(event)]
     pub struct RandomUpdated {
-        #[ink(topic)]
+        #[pro(topic)]
         new: [u8; 32],
     }
 
     impl RandExtension {
         /// Constructor that initializes the `bool` value to the given `init_value`.
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn new(init_value: [u8; 32]) -> Self {
             Self { value: init_value }
         }
@@ -91,13 +91,13 @@ mod rand_extension {
         /// Constructor that initializes the `bool` value to `false`.
         ///
         /// Constructors can delegate to other constructors.
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn default() -> Self {
             Self::new(Default::default())
         }
 
         /// update the value from runtime random source
-        #[ink(message)]
+        #[pro(message)]
         pub fn update(&mut self) -> Result<(), RandomReadErr> {
             // Get the on-chain random seed
             let new_random = self.env().extension().fetch_random()?;
@@ -109,7 +109,7 @@ mod rand_extension {
         }
 
         /// Simply returns the current value.
-        #[ink(message)]
+        #[pro(message)]
         pub fn get(&self) -> [u8; 32] {
             self.value
         }
@@ -120,10 +120,10 @@ mod rand_extension {
     mod tests {
         /// Imports all the definitions from the outer scope so we can use them here.
         use super::*;
-        use ink_lang as ink;
+        use pro_lang as pro;
 
         /// We test if the default constructor does its job.
-        #[ink::test]
+        #[pro::test]
         fn default_works() {
             let rand_extension = RandExtension::default();
             assert_eq!(rand_extension.get(), [0; 32]);

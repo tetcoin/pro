@@ -14,13 +14,13 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract]
+#[pro::contract]
 mod delegator {
     use accumulator::Accumulator;
     use adder::Adder;
-    use ink_storage::{
+    use pro_storage::{
         traits::{
             PackedLayout,
             SpreadLayout,
@@ -48,7 +48,7 @@ mod delegator {
     )]
     #[cfg_attr(
         feature = "std",
-        derive(::scale_info::TypeInfo, ::ink_storage::traits::StorageLayout)
+        derive(::tetsy_scale_info::TypeInfo, ::pro_storage::traits::StorageLayout)
     )]
     pub enum Which {
         Adder,
@@ -63,7 +63,7 @@ mod delegator {
     /// and subber smart contracts, receive their code hashes from
     /// the signalled events and put their code hash into our
     /// delegator smart contract.
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct Delegator {
         /// Says which of adder or subber is currently in use.
         which: Which,
@@ -77,7 +77,7 @@ mod delegator {
 
     impl Delegator {
         /// Instantiate a delegator with the given sub-contract codes.
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn new(
             init_value: i32,
             version: u32,
@@ -114,13 +114,13 @@ mod delegator {
         }
 
         /// Returns the accumulator's value.
-        #[ink(message)]
+        #[pro(message)]
         pub fn get(&self) -> i32 {
             self.accumulator.get()
         }
 
         /// Delegates the call to either `Adder` or `Subber`.
-        #[ink(message)]
+        #[pro(message)]
         pub fn change(&mut self, by: i32) {
             match self.which {
                 Which::Adder => self.adder.inc(by),
@@ -129,7 +129,7 @@ mod delegator {
         }
 
         /// Switches the delegator.
-        #[ink(message)]
+        #[pro(message)]
         pub fn switch(&mut self) {
             match self.which {
                 Which::Adder => {

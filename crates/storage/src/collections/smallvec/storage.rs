@@ -29,12 +29,12 @@ const _: () = {
         lazy::LazyArray,
         traits::StorageLayout,
     };
-    use ink_metadata::layout::{
+    use pro_metadata::layout::{
         FieldLayout,
         Layout,
         StructLayout,
     };
-    use scale_info::TypeInfo;
+    use tetsy_scale_info::TypeInfo;
 
     impl<T, N> StorageLayout for SmallVec<T, N>
     where

@@ -1,8 +1,8 @@
-error: missing ink! message
+error: missing pro! message
   --> $DIR/M-01-missing-message.rs:4:1
    |
 4  | / mod missing_message {
-5  | |     #[ink(storage)]
+5  | |     #[pro(storage)]
 6  | |     pub struct MissingMessage {}
 7  | |
 ...  |

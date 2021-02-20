@@ -14,7 +14,7 @@
 
 use super::*;
 use pretty_assertions::assert_eq;
-use scale_info::{
+use tetsy_scale_info::{
     IntoPortable,
     Registry,
 };

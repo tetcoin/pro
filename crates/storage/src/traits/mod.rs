@@ -60,12 +60,12 @@ pub use self::{
         FOOTPRINT_CLEANUP_THRESHOLD,
     },
 };
-pub use ::ink_storage_derive::{
+pub use ::pro_storage_derive::{
     PackedLayout,
     SpreadLayout,
     StorageLayout,
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 /// Pulls an instance of type `T` from the contract storage using spread layout.
 ///
@@ -139,7 +139,7 @@ pub fn pull_packed_root<T>(root_key: &Key) -> T
 where
     T: PackedLayout,
 {
-    let mut entity = ink_env::get_contract_storage::<T>(root_key)
+    let mut entity = pro_env::get_contract_storage::<T>(root_key)
         .expect("could not properly decode storage entry")
         .expect("storage entry was empty");
     <T as PackedLayout>::pull_packed(&mut entity, root_key);
@@ -162,7 +162,7 @@ where
     T: PackedLayout,
 {
     <T as PackedLayout>::push_packed(entity, root_key);
-    ink_env::set_contract_storage(root_key, entity);
+    pro_env::set_contract_storage(root_key, entity);
 }
 
 /// Clears the entity from the contract storage using packed layout.
@@ -181,5 +181,5 @@ where
     T: PackedLayout,
 {
     <T as PackedLayout>::clear_packed(entity, root_key);
-    ink_env::clear_contract_storage(root_key);
+    pro_env::clear_contract_storage(root_key);
 }

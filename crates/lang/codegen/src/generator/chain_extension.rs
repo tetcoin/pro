@@ -22,7 +22,7 @@ use quote::{
 };
 use syn::spanned::Spanned;
 
-/// Generator to create an ink! chain extension.
+/// Generator to create an pro! chain extension.
 #[derive(From)]
 pub struct ChainExtension<'a> {
     extension: &'a ir::ChainExtension,
@@ -88,8 +88,8 @@ impl ChainExtension<'_> {
         let result_handling = if returns_result {
             quote_spanned!(span=>
                 .output_result::<
-                    <#output_type as ::ink_lang::IsResultType>::Ok,
-                    <#output_type as ::ink_lang::IsResultType>::Err,
+                    <#output_type as ::pro_lang::IsResultType>::Ok,
+                    <#output_type as ::pro_lang::IsResultType>::Err,
                 >()
             )
         } else {
@@ -112,12 +112,12 @@ impl ChainExtension<'_> {
         };
 
         let where_output_is_result = Some(quote_spanned!(span=>
-            #output_type: ::ink_lang::IsResultType,
+            #output_type: ::pro_lang::IsResultType,
         ))
         .filter(|_| returns_result);
 
         let where_output_impls_from_error_code = Some(quote_spanned!(span=>
-            <#output_type as ::ink_lang::IsResultType>::Err: ::core::convert::From<#error_code>,
+            <#output_type as ::pro_lang::IsResultType>::Err: ::core::convert::From<#error_code>,
         )).filter(|_| returns_result && handle_status);
 
         quote_spanned!(span=>
@@ -128,7 +128,7 @@ impl ChainExtension<'_> {
                 #where_output_is_result
                 #where_output_impls_from_error_code
             {
-                ::ink_env::chain_extension::ChainExtensionMethod::build(#func_id)
+                ::pro_env::chain_extension::ChainExtensionMethod::build(#func_id)
                     .input::<#compound_input_type>()
                     #result_handling
                     #error_code_handling
@@ -148,28 +148,28 @@ impl GenerateCode for ChainExtension<'_> {
             .extension
             .iter_methods()
             .map(|method| Self::generate_for_instance_method(method, error_code));
-        let instance_ident = format_ident!("__ink_{}Instance", ident);
+        let instance_ident = format_ident!("__pro_{}Instance", ident);
         quote_spanned!(span =>
             #(#attrs)*
             pub enum #ident {}
 
             const _: () = {
                 #[allow(non_camel_case_types)]
-                struct __ink_Private;
+                struct __pro_Private;
                 #[allow(non_camel_case_types)]
                 pub struct #instance_ident {
-                    __ink_private: __ink_Private
+                    __pro_private: __pro_Private
                 }
 
                 impl #instance_ident {
                     #( #instance_methods )*
                 }
 
-                impl ::ink_lang::ChainExtensionInstance for #ident {
+                impl ::pro_lang::ChainExtensionInstance for #ident {
                     type Instance = #instance_ident;
 
                     fn instantiate() -> Self::Instance {
-                        Self::Instance { __ink_private: __ink_Private }
+                        Self::Instance { __pro_private: __pro_Private }
                     }
                 }
             };

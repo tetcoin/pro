@@ -1,17 +1,17 @@
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract]
+#[pro::contract]
 mod noop {
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct Noop {}
 
     impl Noop {
-        #[ink(constructor, payable)]
+        #[pro(constructor, payable)]
         pub fn abi_constructor() -> Self {
             Self {}
         }
 
-        #[ink(message)]
+        #[pro(message)]
         pub fn noop(&self) {}
     }
 }

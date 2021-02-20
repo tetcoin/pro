@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Implementation of ink! storage traits.
+//! Implementation of pro! storage traits.
 
 use super::{
     Entry,
@@ -30,7 +30,7 @@ use crate::{
         SpreadLayout,
     },
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 #[cfg(feature = "std")]
 const _: () = {
@@ -38,14 +38,14 @@ const _: () = {
         collections::Vec as StorageVec,
         traits::StorageLayout,
     };
-    use ink_metadata::layout::{
+    use pro_metadata::layout::{
         CellLayout,
         FieldLayout,
         Layout,
         LayoutKey,
         StructLayout,
     };
-    use scale_info::TypeInfo;
+    use tetsy_scale_info::TypeInfo;
 
     impl StorageLayout for Header {
         fn layout(key_ptr: &mut KeyPtr) -> Layout {

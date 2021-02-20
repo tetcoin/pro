@@ -14,32 +14,32 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract]
+#[pro::contract]
 mod incrementer {
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct Incrementer {
         value: i32,
     }
 
     impl Incrementer {
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn new(init_value: i32) -> Self {
             Self { value: init_value }
         }
 
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn default() -> Self {
             Self::new(Default::default())
         }
 
-        #[ink(message)]
+        #[pro(message)]
         pub fn inc(&mut self, by: i32) {
             self.value += by;
         }
 
-        #[ink(message)]
+        #[pro(message)]
         pub fn get(&self) -> i32 {
             self.value
         }

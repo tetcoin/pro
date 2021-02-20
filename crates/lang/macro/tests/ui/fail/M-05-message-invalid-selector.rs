@@ -1,17 +1,17 @@
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract]
+#[pro::contract]
 mod message_invalid_selector {
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct MessageInvalidSelector {}
 
     impl MessageInvalidSelector {
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn constructor() -> Self {
             Self {}
         }
 
-        #[ink(message, selector = "0x00")]
+        #[pro(message, selector = "0x00")]
         pub fn invalid_selector(&self) {}
     }
 }

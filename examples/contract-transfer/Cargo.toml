@@ -5,15 +5,16 @@ authors = ["Parity Technologies <admin@parity.io>"]
 edition = "2018"
 
 [dependencies]
-ink_primitives = { version = "3.0.0-rc1", path = "../../crates/primitives", default-features = false }
-ink_metadata = { version = "3.0.0-rc1", path = "../../crates/metadata", default-features = false, features = ["derive"], optional = true }
-ink_env = { version = "3.0.0-rc1", path = "../../crates/env", default-features = false }
-ink_storage = { version = "3.0.0-rc1", path = "../../crates/storage", default-features = false }
-ink_lang = { version = "3.0.0-rc1", path = "../../crates/lang", default-features = false }
+pro_primitives = { version = "3.0.0-rc1", path = "../../crates/primitives", default-features = false }
+pro_metadata = { version = "3.0.0-rc1", path = "../../crates/metadata", default-features = false, features = ["derive"], optional = true }
+pro_env = { version = "3.0.0-rc1", path = "../../crates/env", default-features = false }
+pro_storage = { version = "3.0.0-rc1", path = "../../crates/storage", default-features = false }
+pro_lang = { version = "3.0.0-rc1", path = "../../crates/lang", default-features = false }
 
-scale = { package = "parity-scale-codec", version = "2.0", default-features = false, features = ["derive"] }
-scale-info = { version = "0.5", default-features = false, features = ["derive"], optional = true }
+scale = { package = "tetsy-scale-codec", version = "2.0.1", default-features = false, features = ["derive"] }
+tetsy-scale-info = { version = "0.5.1", default-features = false, features = ["derive"], optional = true }
 
+funty = "=1.1.0"
 
 [lib]
 name = "contract_transfer"
@@ -23,14 +24,14 @@ crate-type = ["cdylib"]
 [features]
 default = ["std"]
 std = [
-    "ink_primitives/std",
-    "ink_metadata",
-    "ink_metadata/std",
-    "ink_env/std",
-    "ink_storage/std",
-    "ink_lang/std",
+    "pro_primitives/std",
+    "pro_metadata",
+    "pro_metadata/std",
+    "pro_env/std",
+    "pro_storage/std",
+    "pro_lang/std",
     "scale/std",
-    "scale-info",
-    "scale-info/std",
+    "tetsy-scale-info",
+    "tetsy-scale-info/std",
 ]
-ink-as-dependency = []
+pro-as-dependency = []

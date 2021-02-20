@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use ink_env::hash::{
+use pro_env::hash::{
     Blake2x256,
     CryptoHash,
     HashOutput,
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 /// A unique dynamic allocation.
 ///
@@ -34,7 +34,7 @@ use ink_primitives::Key;
 #[derive(
     Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, scale::Encode, scale::Decode,
 )]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+#[cfg_attr(feature = "std", derive(tetsy_scale_info::TypeInfo))]
 pub struct DynamicAllocation(pub(super) u32);
 
 /// Wraps a bytes buffer and turns it into an accumulator.
@@ -116,7 +116,7 @@ impl DynamicAllocation {
         // 21 bytes. Since `u32` always has an encoding length of 4 bytes we
         // end up requiring 25 bytes in total.
         // Optimization Opportunity:
-        // Since ink! always runs single threaded we could make this buffer
+        // Since pro! always runs single threaded we could make this buffer
         // static and instead reuse its contents with every invocation of this
         // method. However, this would introduce `unsafe` Rust usage.
         pub struct EncodeWrapper(u32);

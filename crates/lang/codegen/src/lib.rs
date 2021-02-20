@@ -31,19 +31,19 @@ impl<'a> CodeGenerator for &'a ir::Contract {
     type Generator = generator::Contract<'a>;
 }
 
-impl<'a> CodeGenerator for &'a ir::InkTrait {
+impl<'a> CodeGenerator for &'a ir::ProTrait {
     type Generator = generator::TraitDefinition<'a>;
 }
 
-impl<'a> CodeGenerator for &'a ir::InkTest {
-    type Generator = generator::InkTest<'a>;
+impl<'a> CodeGenerator for &'a ir::ProTest {
+    type Generator = generator::ProTest<'a>;
 }
 
 impl<'a> CodeGenerator for &'a ir::ChainExtension {
     type Generator = generator::ChainExtension<'a>;
 }
 
-/// Generates the entire code for the given ink! contract.
+/// Generates the entire code for the given pro! contract.
 pub fn generate_code<T>(entity: T) -> TokenStream2
 where
     T: CodeGenerator,

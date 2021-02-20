@@ -22,15 +22,15 @@ use quote::{
     quote_spanned,
 };
 
-/// Generator to create the ink! storage struct and important trait impls.
+/// Generator to create the pro! storage struct and important trait impls.
 #[derive(From)]
 pub struct TraitDefinition<'a> {
-    trait_def: &'a ir::InkTrait,
+    trait_def: &'a ir::ProTrait,
 }
 
 impl<'a> TraitDefinition<'a> {
     fn generate_for_constructor(
-        constructor: ir::InkTraitConstructor<'a>,
+        constructor: ir::ProTraitConstructor<'a>,
     ) -> TokenStream2 {
         let span = constructor.span();
         let attrs = constructor.attrs();
@@ -47,7 +47,7 @@ impl<'a> TraitDefinition<'a> {
         )
     }
 
-    fn generate_for_message(message: ir::InkTraitMessage<'a>) -> TokenStream2 {
+    fn generate_for_message(message: ir::ProTraitMessage<'a>) -> TokenStream2 {
         let span = message.span();
         let attrs = message.attrs();
         let sig = message.sig();
@@ -60,7 +60,7 @@ impl<'a> TraitDefinition<'a> {
         let output_ident = format_ident!("{}Out", ident.to_string().to_camel_case());
         quote_spanned!(span =>
             /// Output type of the respective trait message.
-            type #output_ident: ::ink_lang::ImpliesReturn<#output>;
+            type #output_ident: ::pro_lang::ImpliesReturn<#output>;
 
             #(#attrs)*
             fn #ident(#inputs) -> Self::#output_ident;
@@ -75,7 +75,7 @@ impl GenerateCode for TraitDefinition<'_> {
         let hash = self.trait_def.verify_hash();
         let ident = self.trait_def.ident();
         let helper_ident = format_ident!(
-            "__ink_Checked{}_0x{:X}{:X}{:X}{:X}",
+            "__pro_Checked{}_0x{:X}{:X}{:X}{:X}",
             ident,
             hash[0],
             hash[1],
@@ -87,19 +87,19 @@ impl GenerateCode for TraitDefinition<'_> {
         let constructors = self
             .trait_def
             .iter_items()
-            .flat_map(ir::InkTraitItem::filter_map_constructor)
+            .flat_map(ir::ProTraitItem::filter_map_constructor)
             .map(Self::generate_for_constructor);
         let messages = self
             .trait_def
             .iter_items()
-            .flat_map(ir::InkTraitItem::filter_map_message)
+            .flat_map(ir::ProTraitItem::filter_map_message)
             .map(Self::generate_for_message);
         quote_spanned!(span =>
             #(#attrs)*
-            pub trait #ident: ::ink_lang::CheckedInkTrait<[(); #verify_hash_id]> {
+            pub trait #ident: ::pro_lang::CheckedProTrait<[(); #verify_hash_id]> {
                 #[doc(hidden)]
                 #[allow(non_camel_case_types)]
-                type __ink_Checksum: #helper_ident;
+                type __pro_Checksum: #helper_ident;
 
                 #(#constructors)*
                 #(#messages)*

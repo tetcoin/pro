@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Utilities and helper routines that are useful for both ink! messages
-//! and ink! constructors.
+//! Utilities and helper routines that are useful for both pro! messages
+//! and pro! constructors.
 
 use crate::ir;
 use core::fmt;
@@ -27,9 +27,9 @@ use syn::spanned::Spanned as _;
 /// The kind of externally callable smart contract entity.
 #[derive(Debug, Copy, Clone)]
 pub enum CallableKind {
-    /// An ink! message externally callable.
+    /// An pro! message externally callable.
     Message,
-    /// An ink! constructor externally callable.
+    /// An pro! constructor externally callable.
     Constructor,
 }
 
@@ -80,7 +80,7 @@ where
 }
 
 impl<'a, C> CallableWithSelector<'a, C> {
-    /// Returns the composed selector of the ink! callable the the impl block.
+    /// Returns the composed selector of the pro! callable the the impl block.
     pub fn composed_selector(&self) -> ir::Selector {
         self.composed_selector
     }
@@ -90,7 +90,7 @@ impl<'a, C> CallableWithSelector<'a, C> {
         self.callable
     }
 
-    /// Returns the parent implementation block of the ink! callable.
+    /// Returns the parent implementation block of the pro! callable.
     pub fn item_impl(&self) -> &'a ir::ItemImpl {
         self.item_impl
     }
@@ -141,41 +141,41 @@ impl<'a, C> ::core::ops::Deref for CallableWithSelector<'a, C> {
     }
 }
 
-/// An ink! callable.
+/// An pro! callable.
 ///
-/// This is either an ink! message or an ink! constructor.
+/// This is either an pro! message or an pro! constructor.
 /// Used to share common behavior between different callable types.
 pub trait Callable {
-    /// Returns the kind of the ink! callable.
+    /// Returns the kind of the pro! callable.
     fn kind(&self) -> CallableKind;
 
-    /// Returns the identifier of the ink! callable.
+    /// Returns the identifier of the pro! callable.
     fn ident(&self) -> &Ident;
 
-    /// Returns the selector of the ink! callable if any has been manually set.
+    /// Returns the selector of the pro! callable if any has been manually set.
     fn user_provided_selector(&self) -> Option<&ir::Selector>;
 
-    /// Returns `true` if the ink! callable is flagged as payable.
+    /// Returns `true` if the pro! callable is flagged as payable.
     ///
     /// # Note
     ///
-    /// Flagging as payable is done using the `#[ink(payable)]` attribute.
+    /// Flagging as payable is done using the `#[pro(payable)]` attribute.
     fn is_payable(&self) -> bool;
 
-    /// Returns the visibility of the ink! callable.
+    /// Returns the visibility of the pro! callable.
     fn visibility(&self) -> Visibility;
 
-    /// Returns an iterator yielding all input parameters of the ink! callable.
+    /// Returns an iterator yielding all input parameters of the pro! callable.
     fn inputs(&self) -> InputsIter;
 
-    /// Returns the span of the inputs of the ink! callable.
+    /// Returns the span of the inputs of the pro! callable.
     fn inputs_span(&self) -> Span;
 
     /// Returns a slice over shared references to the statements of the callable.
     fn statements(&self) -> &[syn::Stmt];
 }
 
-/// Returns the composed selector of the ink! callable.
+/// Returns the composed selector of the pro! callable.
 ///
 /// Composition takes into account the given [`ir::ItemImpl`].
 ///
@@ -208,7 +208,7 @@ pub trait Callable {
 ///
 /// ```no_compile
 /// impl MyStorage {
-///     #[ink(message, selector = "0xDEADBEEF")]
+///     #[pro(message, selector = "0xDEADBEEF")]
 ///     fn my_message(&self) {}
 /// }
 /// ```
@@ -222,7 +222,7 @@ pub trait Callable {
 ///
 /// ```no_compile
 /// impl MyStorage {
-///     #[ink(message)]
+///     #[pro(message)]
 ///     fn my_message(&self) {}
 /// }
 /// ```
@@ -238,7 +238,7 @@ pub trait Callable {
 ///
 /// ```no_compile
 /// impl MyTrait for MyStorage {
-///     #[ink(message)]
+///     #[pro(message)]
 ///     fn my_message(&self) {}
 /// }
 /// ```
@@ -254,7 +254,7 @@ pub trait Callable {
 ///
 /// ```no_compile
 /// impl ::my_full::long_path::MyTrait for MyStorage {
-///     #[ink(message)]
+///     #[pro(message)]
 ///     fn my_message(&self) {}
 /// }
 /// ```
@@ -269,9 +269,9 @@ pub trait Callable {
 /// Given
 ///
 /// ```no_compile
-/// #[ink(namespace = "my_namespace")]
+/// #[pro(namespace = "my_namespace")]
 /// impl MyTrait for MyStorage {
-///     #[ink(message)]
+///     #[pro(message)]
 ///     fn my_message(&self) {}
 /// }
 /// ```
@@ -283,17 +283,17 @@ pub trait Callable {
 ///
 /// ## Note
 ///
-/// All above examples work similarly for ink! constructors interchangeably.
+/// All above examples work similarly for pro! constructors interchangeably.
 ///
 /// ## Usage Recommendations
 ///
 /// These recommendation mainly apply to trait implementation blocks:
 ///
-/// - The recommendation by the ink! team is to use the full-path approach
+/// - The recommendation by the pro! team is to use the full-path approach
 /// wherever possible; OR import the trait and use only its identifier with
 /// an additional namespace if required to disambiguate selectors.
 /// - Try not to intermix the above recommendations.
-/// - Avoid directly setting the selector of an ink! message or constuctor.
+/// - Avoid directly setting the selector of an pro! message or constuctor.
 ///   Only do this if nothing else helps and you need a very specific selector,
 ///   e.g. in case of backwards compatibility.
 /// - Do not use the namespace unless required to disambiguate.
@@ -347,7 +347,7 @@ where
     ir::Selector::new([hash[0], hash[1], hash[2], hash[3]])
 }
 
-/// Ensures that common invariants of externally callable ink! entities are met.
+/// Ensures that common invariants of externally callable pro! entities are met.
 ///
 /// # Errors
 ///
@@ -372,56 +372,56 @@ pub(super) fn ensure_callable_invariants(
     if let Some(bad_visibility) = bad_visibility {
         return Err(format_err!(
             bad_visibility,
-            "ink! {}s must have public or inherited visibility",
+            "pro! {}s must have public or inherited visibility",
             kind
         ))
     }
     if !method_item.sig.generics.params.is_empty() {
         return Err(format_err_spanned!(
             method_item.sig.generics.params,
-            "ink! {}s must not be generic",
+            "pro! {}s must not be generic",
             kind,
         ))
     }
     if method_item.sig.constness.is_some() {
         return Err(format_err_spanned!(
             method_item.sig.constness,
-            "ink! {}s must not be const",
+            "pro! {}s must not be const",
             kind,
         ))
     }
     if method_item.sig.asyncness.is_some() {
         return Err(format_err_spanned!(
             method_item.sig.asyncness,
-            "ink! {}s must not be async",
+            "pro! {}s must not be async",
             kind,
         ))
     }
     if method_item.sig.unsafety.is_some() {
         return Err(format_err_spanned!(
             method_item.sig.unsafety,
-            "ink! {}s must not be unsafe",
+            "pro! {}s must not be unsafe",
             kind,
         ))
     }
     if method_item.sig.abi.is_some() {
         return Err(format_err_spanned!(
             method_item.sig.abi,
-            "ink! {}s must have explicit ABI",
+            "pro! {}s must have explicit ABI",
             kind,
         ))
     }
     if method_item.sig.variadic.is_some() {
         return Err(format_err_spanned!(
             method_item.sig.variadic,
-            "ink! {}s must not be variadic",
+            "pro! {}s must not be variadic",
             kind,
         ))
     }
     Ok(())
 }
 
-/// The visibility of an ink! message or constructor.
+/// The visibility of an pro! message or constructor.
 #[derive(Debug, Clone)]
 pub enum Visibility {
     Public(syn::VisPublic),
@@ -429,7 +429,7 @@ pub enum Visibility {
 }
 
 impl Visibility {
-    /// Returns `true` if the visibility of the ink! message of constructor is public (`pub`).
+    /// Returns `true` if the visibility of the pro! message of constructor is public (`pub`).
     ///
     /// # Note
     ///
@@ -438,7 +438,7 @@ impl Visibility {
         matches!(self, Self::Public(_))
     }
 
-    /// Returns `true` if the visibility of the ink! message of constructor is inherited.
+    /// Returns `true` if the visibility of the pro! message of constructor is inherited.
     ///
     /// # Note
     ///
@@ -456,9 +456,9 @@ impl Visibility {
     }
 }
 
-/// Iterator over the input parameters of an ink! message or constructor.
+/// Iterator over the input parameters of an pro! message or constructor.
 ///
-/// Does not yield the self receiver of ink! messages.
+/// Does not yield the self receiver of pro! messages.
 pub struct InputsIter<'a> {
     iter: syn::punctuated::Iter<'a, syn::FnArg>,
 }
@@ -530,7 +530,7 @@ mod tests {
         }
     }
 
-    /// Asserts that the given ink! implementation block and the given ink!
+    /// Asserts that the given pro! implementation block and the given pro!
     /// message result in the same composed selector as the expected bytes.
     fn assert_compose_selector<C, S>(
         item_impl: syn::ItemImpl,
@@ -554,66 +554,66 @@ mod tests {
     fn compose_selector_works() {
         assert_compose_selector::<ir::Message, _>(
             syn::parse_quote! {
-                #[ink(impl)]
+                #[pro(impl)]
                 impl MyStorage {}
             },
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 fn my_message(&self) {}
             },
             b"my_message".to_vec(),
         );
         assert_compose_selector::<ir::Message, _>(
             syn::parse_quote! {
-                #[ink(impl)]
+                #[pro(impl)]
                 impl MyTrait for MyStorage {}
             },
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 fn my_message(&self) {}
             },
             b"MyTrait::my_message".to_vec(),
         );
         assert_compose_selector::<ir::Message, _>(
             syn::parse_quote! {
-                #[ink(impl)]
+                #[pro(impl)]
                 impl ::my::full::path::MyTrait for MyStorage {}
             },
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 fn my_message(&self) {}
             },
             b"::my::full::path::MyTrait::my_message".to_vec(),
         );
         assert_compose_selector::<ir::Message, _>(
             syn::parse_quote! {
-                #[ink(impl, namespace = "my_namespace")]
+                #[pro(impl, namespace = "my_namespace")]
                 impl MyTrait for MyStorage {}
             },
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 fn my_message(&self) {}
             },
             b"my_namespace::MyTrait::my_message".to_vec(),
         );
         assert_compose_selector::<ir::Message, _>(
             syn::parse_quote! {
-                #[ink(impl)]
+                #[pro(impl)]
                 impl MyTrait for MyStorage {}
             },
             syn::parse_quote! {
-                #[ink(message, selector = "0xDEADBEEF")]
+                #[pro(message, selector = "0xDEADBEEF")]
                 fn my_message(&self) {}
             },
             [0xDE, 0xAD, 0xBE, 0xEF],
         );
         assert_compose_selector::<ir::Message, _>(
             syn::parse_quote! {
-                #[ink(impl)]
+                #[pro(impl)]
                 impl relative::path_to::MyTrait for MyStorage {}
             },
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 fn my_message(&self) {}
             },
             b"MyTrait::my_message".to_vec(),

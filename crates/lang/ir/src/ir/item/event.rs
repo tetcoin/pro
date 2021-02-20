@@ -24,18 +24,18 @@ use proc_macro2::{
 };
 use syn::spanned::Spanned as _;
 
-/// An ink! event struct definition.
+/// An pro! event struct definition.
 ///
 /// # Example
 ///
 /// ```
 /// # use core::convert::TryFrom;
-/// # let event = <ink_lang_ir::Event as TryFrom<syn::ItemStruct>>::try_from(syn::parse_quote! {
-/// #[ink(event)]
+/// # let event = <pro_lang_ir::Event as TryFrom<syn::ItemStruct>>::try_from(syn::parse_quote! {
+/// #[pro(event)]
 /// pub struct Transaction {
-///     #[ink(topic)]
+///     #[pro(topic)]
 ///     from: AccountId,
-///     #[ink(topic)]
+///     #[pro(topic)]
 ///     to: AccountId,
 ///     value: Balance,
 /// }
@@ -48,7 +48,7 @@ pub struct Event {
 }
 
 impl quote::ToTokens for Event {
-    /// We mainly implement this trait for this ink! type to have a derived
+    /// We mainly implement this trait for this pro! type to have a derived
     /// [`Spanned`](`syn::spanned::Spanned`) implementation for it.
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         self.item.to_tokens(tokens)
@@ -56,23 +56,23 @@ impl quote::ToTokens for Event {
 }
 
 impl Event {
-    /// Returns `true` if the first ink! annotation on the given struct is
-    /// `#[ink(event)]`.
+    /// Returns `true` if the first pro! annotation on the given struct is
+    /// `#[pro(event)]`.
     ///
     /// # Errors
     ///
-    /// If the first found ink! attribute is malformed.
-    pub(super) fn is_ink_event(
+    /// If the first found pro! attribute is malformed.
+    pub(super) fn is_pro_event(
         item_struct: &syn::ItemStruct,
     ) -> Result<bool, syn::Error> {
-        if !ir::contains_ink_attributes(&item_struct.attrs) {
+        if !ir::contains_pro_attributes(&item_struct.attrs) {
             return Ok(false)
         }
-        // At this point we know that there must be at least one ink!
-        // attribute. This can be either the ink! storage struct,
-        // an ink! event or an invalid ink! attribute.
-        let attr = ir::first_ink_attribute(&item_struct.attrs)?
-            .expect("missing expected ink! attribute for struct");
+        // At this point we know that there must be at least one pro!
+        // attribute. This can be either the pro! storage struct,
+        // an pro! event or an invalid pro! attribute.
+        let attr = ir::first_pro_attribute(&item_struct.attrs)?
+            .expect("missing expected pro! attribute for struct");
         Ok(matches!(attr.first().kind(), ir::AttributeArg::Event))
     }
 }
@@ -82,7 +82,7 @@ impl TryFrom<syn::ItemStruct> for Event {
 
     fn try_from(item_struct: syn::ItemStruct) -> Result<Self, Self::Error> {
         let struct_span = item_struct.span();
-        let (ink_attrs, other_attrs) = ir::sanitize_attributes(
+        let (pro_attrs, other_attrs) = ir::sanitize_attributes(
             struct_span,
             item_struct.attrs,
             &ir::AttributeArgKind::Event,
@@ -96,31 +96,31 @@ impl TryFrom<syn::ItemStruct> for Event {
         if !item_struct.generics.params.is_empty() {
             return Err(format_err_spanned!(
                 item_struct.generics.params,
-                "generic ink! event structs are not supported",
+                "generic pro! event structs are not supported",
             ))
         }
         utils::ensure_pub_visibility("event structs", struct_span, &item_struct.vis)?;
         'repeat: for field in item_struct.fields.iter() {
             let field_span = field.span();
-            let (ink_attrs, _) = ir::partition_attributes(field.attrs.clone())?;
-            if ink_attrs.is_empty() {
+            let (pro_attrs, _) = ir::partition_attributes(field.attrs.clone())?;
+            if pro_attrs.is_empty() {
                 continue 'repeat
             }
             let normalized =
-                ir::InkAttribute::from_expanded(ink_attrs).map_err(|err| {
+                ir::ProAttribute::from_expanded(pro_attrs).map_err(|err| {
                     err.into_combine(format_err!(field_span, "at this invocation",))
                 })?;
             if !matches!(normalized.first().kind(), ir::AttributeArg::Topic) {
                 return Err(format_err!(
                     field_span,
-                    "first optional ink! attribute of an event field must be #[ink(topic)]",
+                    "first optional pro! attribute of an event field must be #[pro(topic)]",
                 ))
             }
             for arg in normalized.args() {
                 if !matches!(arg.kind(), ir::AttributeArg::Topic) {
                     return Err(format_err!(
                         arg.span(),
-                        "encountered conflicting ink! attribute for event field",
+                        "encountered conflicting pro! attribute for event field",
                     ))
                 }
             }
@@ -130,7 +130,7 @@ impl TryFrom<syn::ItemStruct> for Event {
                 attrs: other_attrs,
                 ..item_struct
             },
-            anonymous: ink_attrs.is_anonymous(),
+            anonymous: pro_attrs.is_anonymous(),
         })
     }
 }
@@ -141,13 +141,13 @@ impl Event {
         &self.item.ident
     }
 
-    /// Returns an iterator yielding all the `#[ink(topic)]` annotated fields
+    /// Returns an iterator yielding all the `#[pro(topic)]` annotated fields
     /// of the event struct.
     pub fn fields(&self) -> EventFieldsIter {
         EventFieldsIter::new(self)
     }
 
-    /// Returns all non-ink! attributes.
+    /// Returns all non-pro! attributes.
     pub fn attrs(&self) -> &[syn::Attribute] {
         &self.item.attrs
     }
@@ -168,11 +168,11 @@ impl<'a> EventField<'a> {
         self.field.span()
     }
 
-    /// Returns all non-ink! attributes of the event field.
+    /// Returns all non-pro! attributes of the event field.
     pub fn attrs(self) -> Vec<syn::Attribute> {
-        let (_, non_ink_attrs) = ir::partition_attributes(self.field.attrs.clone())
+        let (_, non_pro_attrs) = ir::partition_attributes(self.field.attrs.clone())
             .expect("encountered invalid event field attributes");
-        non_ink_attrs
+        non_pro_attrs
     }
 
     /// Returns the visibility of the event field.
@@ -191,13 +191,13 @@ impl<'a> EventField<'a> {
     }
 }
 
-/// Iterator yielding all `#[ink(topic)]` annotated fields of an event struct.
+/// Iterator yielding all `#[pro(topic)]` annotated fields of an event struct.
 pub struct EventFieldsIter<'a> {
     iter: syn::punctuated::Iter<'a, syn::Field>,
 }
 
 impl<'a> EventFieldsIter<'a> {
-    /// Creates a new topics fields iterator for the given ink! event struct.
+    /// Creates a new topics fields iterator for the given pro! event struct.
     fn new(event: &'a Event) -> Self {
         Self {
             iter: event.item.fields.iter(),
@@ -212,7 +212,7 @@ impl<'a> Iterator for EventFieldsIter<'a> {
         match self.iter.next() {
             None => None,
             Some(field) => {
-                let is_topic = ir::first_ink_attribute(&field.attrs)
+                let is_topic = ir::first_pro_attribute(&field.attrs)
                     .unwrap_or_default()
                     .map(|attr| matches!(attr.first().kind(), ir::AttributeArg::Topic))
                     .unwrap_or_default();
@@ -229,9 +229,9 @@ mod tests {
     #[test]
     fn simple_try_from_works() {
         let item_struct: syn::ItemStruct = syn::parse_quote! {
-            #[ink(event)]
+            #[pro(event)]
             pub struct MyEvent {
-                #[ink(topic)]
+                #[pro(topic)]
                 field_1: i32,
                 field_2: bool,
             }
@@ -250,15 +250,15 @@ mod tests {
     fn conflicting_struct_attributes_fails() {
         assert_try_from_fails(
             syn::parse_quote! {
-                #[ink(event)]
-                #[ink(storage)]
+                #[pro(event)]
+                #[pro(storage)]
                 pub struct MyEvent {
-                    #[ink(topic)]
+                    #[pro(topic)]
                     field_1: i32,
                     field_2: bool,
                 }
             },
-            "encountered conflicting ink! attribute argument",
+            "encountered conflicting pro! attribute argument",
         )
     }
 
@@ -266,15 +266,15 @@ mod tests {
     fn duplicate_struct_attributes_fails() {
         assert_try_from_fails(
             syn::parse_quote! {
-                #[ink(event)]
-                #[ink(event)]
+                #[pro(event)]
+                #[pro(event)]
                 pub struct MyEvent {
-                    #[ink(topic)]
+                    #[pro(topic)]
                     field_1: i32,
                     field_2: bool,
                 }
             },
-            "encountered duplicate ink! attribute",
+            "encountered duplicate pro! attribute",
         )
     }
 
@@ -282,15 +282,15 @@ mod tests {
     fn wrong_first_struct_attribute_fails() {
         assert_try_from_fails(
             syn::parse_quote! {
-                #[ink(storage)]
-                #[ink(event)]
+                #[pro(storage)]
+                #[pro(event)]
                 pub struct MyEvent {
-                    #[ink(topic)]
+                    #[pro(topic)]
                     field_1: i32,
                     field_2: bool,
                 }
             },
-            "unexpected first ink! attribute argument",
+            "unexpected first pro! attribute argument",
         )
     }
 
@@ -299,12 +299,12 @@ mod tests {
         assert_try_from_fails(
             syn::parse_quote! {
                 pub struct MyEvent {
-                    #[ink(topic)]
+                    #[pro(topic)]
                     field_1: i32,
                     field_2: bool,
                 }
             },
-            "encountered unexpected empty expanded ink! attribute arguments",
+            "encountered unexpected empty expanded pro! attribute arguments",
         )
     }
 
@@ -312,14 +312,14 @@ mod tests {
     fn generic_event_fails() {
         assert_try_from_fails(
             syn::parse_quote! {
-                #[ink(event)]
+                #[pro(event)]
                 pub struct GenericEvent<T> {
-                    #[ink(topic)]
+                    #[pro(topic)]
                     field_1: T,
                     field_2: bool,
                 }
             },
-            "generic ink! event structs are not supported",
+            "generic pro! event structs are not supported",
         )
     }
 
@@ -327,14 +327,14 @@ mod tests {
     fn non_pub_event_struct() {
         assert_try_from_fails(
             syn::parse_quote! {
-                #[ink(event)]
+                #[pro(event)]
                 struct PrivateEvent {
-                    #[ink(topic)]
+                    #[pro(topic)]
                     field_1: i32,
                     field_2: bool,
                 }
             },
-            "non `pub` ink! event structs are not supported",
+            "non `pub` pro! event structs are not supported",
         )
     }
 
@@ -342,15 +342,15 @@ mod tests {
     fn duplicate_field_attributes_fails() {
         assert_try_from_fails(
             syn::parse_quote! {
-                #[ink(event)]
+                #[pro(event)]
                 pub struct MyEvent {
-                    #[ink(topic)]
-                    #[ink(topic)]
+                    #[pro(topic)]
+                    #[pro(topic)]
                     field_1: i32,
                     field_2: bool,
                 }
             },
-            "encountered duplicate ink! attribute",
+            "encountered duplicate pro! attribute",
         )
     }
 
@@ -358,14 +358,14 @@ mod tests {
     fn invalid_field_attributes_fails() {
         assert_try_from_fails(
             syn::parse_quote! {
-                #[ink(event)]
+                #[pro(event)]
                 pub struct MyEvent {
-                    #[ink(message)]
+                    #[pro(message)]
                     field_1: i32,
                     field_2: bool,
                 }
             },
-            "first optional ink! attribute of an event field must be #[ink(topic)]",
+            "first optional pro! attribute of an event field must be #[pro(topic)]",
         )
     }
 
@@ -373,15 +373,15 @@ mod tests {
     fn conflicting_field_attributes_fails() {
         assert_try_from_fails(
             syn::parse_quote! {
-                #[ink(event)]
+                #[pro(event)]
                 pub struct MyEvent {
-                    #[ink(topic)]
-                    #[ink(payable)]
+                    #[pro(topic)]
+                    #[pro(payable)]
                     field_1: i32,
                     field_2: bool,
                 }
             },
-            "encountered conflicting ink! attribute for event field",
+            "encountered conflicting pro! attribute for event field",
         )
     }
 
@@ -431,12 +431,12 @@ mod tests {
             ),
         ];
         let input = <Event as TryFrom<syn::ItemStruct>>::try_from(syn::parse_quote! {
-            #[ink(event)]
+            #[pro(event)]
             pub struct MyEvent {
-                #[ink(topic)]
+                #[pro(topic)]
                 field_1: i32,
                 field_2: u64,
-                #[ink(topic)]
+                #[pro(topic)]
                 field_3: [u8; 32],
             }
         })
@@ -461,18 +461,18 @@ mod tests {
             }
         }
         assert_anonymous_event(syn::parse_quote! {
-            #[ink(event)]
-            #[ink(anonymous)]
+            #[pro(event)]
+            #[pro(anonymous)]
             pub struct MyEvent {
-                #[ink(topic)]
+                #[pro(topic)]
                 field_1: i32,
                 field_2: bool,
             }
         });
         assert_anonymous_event(syn::parse_quote! {
-            #[ink(event, anonymous)]
+            #[pro(event, anonymous)]
             pub struct MyEvent {
-                #[ink(topic)]
+                #[pro(topic)]
                 field_1: i32,
                 field_2: bool,
             }

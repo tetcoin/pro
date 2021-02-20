@@ -29,7 +29,7 @@ use quote::{
 };
 use syn::spanned::Spanned as _;
 
-/// Generates code for all ink! implementation blocks.
+/// Generates code for all pro! implementation blocks.
 #[derive(From)]
 pub struct ItemImpls<'a> {
     contract: &'a ir::Contract,
@@ -53,7 +53,7 @@ impl GenerateCode for ItemImpls<'_> {
         quote! {
             #no_cross_calling_cfg
             const _: () = {
-                use ::ink_lang::{Env, EmitEvent, StaticEnv};
+                use ::pro_lang::{Env, EmitEvent, StaticEnv};
 
                 #( #item_impls )*
             };
@@ -62,7 +62,7 @@ impl GenerateCode for ItemImpls<'_> {
 }
 
 impl ItemImpls<'_> {
-    /// Generates the code for the given ink! constructor within a trait implementation block.
+    /// Generates the code for the given pro! constructor within a trait implementation block.
     fn generate_trait_constructor(constructor: &ir::Constructor) -> TokenStream2 {
         let span = constructor.span();
         let attrs = constructor.attrs();
@@ -84,7 +84,7 @@ impl ItemImpls<'_> {
         )
     }
 
-    /// Generates the code for the given ink! message within a trait implementation block.
+    /// Generates the code for the given pro! message within a trait implementation block.
     fn generate_trait_message(message: &ir::Message) -> TokenStream2 {
         let span = message.span();
         let attrs = message.attrs();
@@ -136,7 +136,7 @@ impl ItemImpls<'_> {
             .trait_ident()
             .expect("encountered missing trait identifier for trait impl block");
         let self_type = item_impl.self_type();
-        let hash = ir::InkTrait::compute_verify_hash(
+        let hash = ir::ProTrait::compute_verify_hash(
             trait_ident,
             item_impl.iter_constructors().map(|constructor| {
                 let ident = constructor.ident().clone();
@@ -152,11 +152,11 @@ impl ItemImpls<'_> {
         );
         let checksum = u32::from_be_bytes([hash[0], hash[1], hash[2], hash[3]]) as usize;
         quote_spanned!(span =>
-            unsafe impl ::ink_lang::CheckedInkTrait<[(); #checksum]> for #self_type {}
+            unsafe impl ::pro_lang::CheckedProTrait<[(); #checksum]> for #self_type {}
 
             #( #attrs )*
             impl #trait_path for #self_type {
-                type __ink_Checksum = [(); #checksum];
+                type __pro_Checksum = [(); #checksum];
 
                 #( #constructors )*
                 #( #messages )*
@@ -165,7 +165,7 @@ impl ItemImpls<'_> {
         )
     }
 
-    /// Generates the code for the given ink! constructor within an inherent implementation block.
+    /// Generates the code for the given pro! constructor within an inherent implementation block.
     fn generate_inherent_constructor(constructor: &ir::Constructor) -> TokenStream2 {
         let span = constructor.span();
         let attrs = constructor.attrs();
@@ -184,7 +184,7 @@ impl ItemImpls<'_> {
         )
     }
 
-    /// Generates the code for the given ink! message within an inherent implementation block.
+    /// Generates the code for the given pro! message within an inherent implementation block.
     fn generate_inherent_message(message: &ir::Message) -> TokenStream2 {
         let span = message.span();
         let attrs = message.attrs();
@@ -235,21 +235,21 @@ impl ItemImpls<'_> {
         )
     }
 
-    /// Generates code to guard against ink! implementations that have not been implemented
-    /// for the ink! storage struct.
+    /// Generates code to guard against pro! implementations that have not been implemented
+    /// for the pro! storage struct.
     fn generate_item_impl_self_ty_guard(&self, item_impl: &ir::ItemImpl) -> TokenStream2 {
         let self_ty = item_impl.self_type();
         let span = self_ty.span();
         let storage_ident = self.contract.module().storage().ident();
         quote_spanned!(span =>
-            ::ink_lang::static_assertions::assert_type_eq_all!(
+            ::pro_lang::static_assertions::assert_type_eq_all!(
                 #self_ty,
                 #storage_ident,
             );
         )
     }
 
-    /// Generates code for the given ink! implementation block.
+    /// Generates code for the given pro! implementation block.
     fn generate_item_impl(&self, item_impl: &ir::ItemImpl) -> TokenStream2 {
         let self_ty_guard = self.generate_item_impl_self_ty_guard(item_impl);
         let impl_block = match item_impl.trait_path() {

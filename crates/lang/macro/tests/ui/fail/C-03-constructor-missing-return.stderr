@@ -1,4 +1,4 @@
-error: missing return for ink! constructor
+error: missing return for pro! constructor
   --> $DIR/C-03-constructor-missing-return.rs:10:13
    |
 10 |         pub fn missing_return() {}

@@ -21,7 +21,7 @@ pub fn run_test<F>(f: F)
 where
     F: FnOnce(),
 {
-    ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+    pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
         f();
         Ok(())
     })
@@ -43,8 +43,8 @@ macro_rules! push_pull_works_for_primitive {
                 crate::test_utils::run_test(|| {
                     $({
                         let x: $name = $value;
-                        let key = ink_primitives::Key::from([0x42; 32]);
-                        let key2 = ink_primitives::Key::from([0x77; 32]);
+                        let key = pro_primitives::Key::from([0x42; 32]);
+                        let key2 = pro_primitives::Key::from([0x77; 32]);
                         crate::traits::push_spread_root(&x, &key);
                         let y: $name = crate::traits::pull_spread_root(&key);
                         assert_eq!(x, y);
@@ -62,7 +62,7 @@ macro_rules! push_pull_works_for_primitive {
                 crate::test_utils::run_test(|| {
                     $({
                         let x: $name = $value;
-                        let key = ink_primitives::Key::from([0x42; 32]);
+                        let key = pro_primitives::Key::from([0x42; 32]);
                         crate::traits::push_spread_root(&x, &key);
                         // Works since we just populated the storage.
                         let y: $name = crate::traits::pull_spread_root(&key);

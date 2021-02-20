@@ -1,25 +1,25 @@
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::trait_definition]
+#[pro::trait_definition]
 pub trait Constructor {
-    #[ink(constructor)]
+    #[pro(constructor)]
     fn constructor() -> Self;
 }
 
-#[ink::contract]
+#[pro::contract]
 mod noop {
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct Noop {}
 
     impl Constructor for Noop {
-        #[ink(constructor, payable)]
+        #[pro(constructor, payable)]
         fn constructor() -> Self {
             Self {}
         }
     }
 
     impl Noop {
-        #[ink(message)]
+        #[pro(message)]
         pub fn noop(&self) {}
     }
 }

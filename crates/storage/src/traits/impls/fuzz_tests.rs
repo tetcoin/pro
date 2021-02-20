@@ -14,10 +14,10 @@
 
 //! Fuzz tests for some storage primitives.
 
-#[cfg(all(test, feature = "std", feature = "ink-fuzz-tests"))]
+#[cfg(all(test, feature = "std", feature = "pro-fuzz-tests"))]
 use quickcheck::TestResult;
 
-#[cfg(all(test, feature = "std", feature = "ink-fuzz-tests"))]
+#[cfg(all(test, feature = "std", feature = "pro-fuzz-tests"))]
 use std::convert::AsMut;
 
 ///  Receives a slice, returns an array.
@@ -47,9 +47,9 @@ fn fuzz_pull_push_pull_array(x: Vec<i32>) -> TestResult {
         return TestResult::discard()
     }
 
-    ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
-        let key = ink_primitives::Key::from([0x42; 32]);
-        let key2 = ink_primitives::Key::from([0x77; 32]);
+    pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
+        let key = pro_primitives::Key::from([0x42; 32]);
+        let key2 = pro_primitives::Key::from([0x77; 32]);
 
         let arr: [i32; 32] = clone_into_array(&x[0..32]);
         crate::traits::push_spread_root(&arr, &key);
@@ -69,12 +69,12 @@ fn fuzz_pull_push_pull_array(x: Vec<i32>) -> TestResult {
 
 /// Tests if a fuzzed `String` results in the same object when pushed/pulled
 /// from storage (for `spread` and `packed`).
-#[cfg(feature = "ink-fuzz-tests")]
+#[cfg(feature = "pro-fuzz-tests")]
 #[quickcheck]
 fn fuzz_pull_push_pull_string(x: String) {
-    ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
-        let key = ink_primitives::Key::from([0x42; 32]);
-        let key2 = ink_primitives::Key::from([0x77; 32]);
+    pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
+        let key = pro_primitives::Key::from([0x42; 32]);
+        let key2 = pro_primitives::Key::from([0x77; 32]);
 
         crate::traits::push_spread_root(&x, &key);
         let y: String = crate::traits::pull_spread_root(&key);

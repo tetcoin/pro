@@ -100,7 +100,7 @@ pub fn free(allocation: DynamicAllocation) {
 ///
 /// # Note
 ///
-/// Normally users of ink! do not have to call this function directly as it is
+/// Normally users of pro! do not have to call this function directly as it is
 /// automatically being use in the correct order and way by the generated code.
 ///
 /// - The `phase` parameter describes for which execution phase the dynamic
@@ -128,7 +128,7 @@ pub fn initialize(phase: ContractPhase) {
 ///
 /// # Note
 ///
-/// Normally users of ink! do not have to call this function directly as it is
+/// Normally users of pro! do not have to call this function directly as it is
 /// automatically being use in the correct order and way by the generated code.
 pub fn finalize() {
     init::finalize()

@@ -21,7 +21,7 @@ use derive_more::From;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 
-/// Generates code for the entirety of the ink! contract.
+/// Generates code for the entirety of the pro! contract.
 #[derive(From)]
 pub struct Contract<'a> {
     /// The contract to generate code for.
@@ -35,7 +35,7 @@ impl AsRef<ir::Contract> for Contract<'_> {
 }
 
 impl GenerateCode for Contract<'_> {
-    /// Generates ink! contract code.
+    /// Generates pro! contract code.
     fn generate_code(&self) -> TokenStream2 {
         let module = self.contract.module();
         let ident = module.ident();
@@ -48,7 +48,7 @@ impl GenerateCode for Contract<'_> {
         let item_impls = self.generate_code_using::<generator::ItemImpls>();
         let cross_calling = self.generate_code_using::<generator::CrossCalling>();
         let metadata = self.generate_code_using::<generator::Metadata>();
-        let non_ink_items = self
+        let non_pro_items = self
             .contract
             .module()
             .items()
@@ -64,7 +64,7 @@ impl GenerateCode for Contract<'_> {
                 #item_impls
                 #cross_calling
                 #metadata
-                #( #non_ink_items )*
+                #( #non_pro_items )*
             }
         }
     }

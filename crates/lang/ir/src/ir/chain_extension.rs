@@ -28,7 +28,7 @@ use syn::{
     Result,
 };
 
-/// An ink! chain extension.
+/// An pro! chain extension.
 #[derive(Debug, PartialEq, Eq)]
 pub struct ChainExtension {
     item: syn::ItemTrait,
@@ -37,19 +37,19 @@ pub struct ChainExtension {
 }
 
 impl ChainExtension {
-    /// Returns the Rust attributes of the ink! chain extension.
+    /// Returns the Rust attributes of the pro! chain extension.
     pub fn attrs(&self) -> Vec<syn::Attribute> {
         let (_, attrs) = ir::partition_attributes(self.item.attrs.iter().cloned())
-            .expect("encountered unexpected invalid attributes for ink! chain extension");
+            .expect("encountered unexpected invalid attributes for pro! chain extension");
         attrs
     }
 
-    /// Returns the span of the ink! chain extension.
+    /// Returns the span of the pro! chain extension.
     pub fn span(&self) -> proc_macro2::Span {
         self.item.span()
     }
 
-    /// Returns the identifier of the ink! chain extension.
+    /// Returns the identifier of the pro! chain extension.
     pub fn ident(&self) -> &proc_macro2::Ident {
         &self.item.ident
     }
@@ -69,7 +69,7 @@ impl ChainExtension {
     }
 }
 
-/// An ink! chain extension method.
+/// An pro! chain extension method.
 #[derive(Debug, PartialEq, Eq)]
 pub struct ChainExtensionMethod {
     /// The underlying validated AST of the chain extension method.
@@ -81,7 +81,7 @@ pub struct ChainExtensionMethod {
     /// to be queried and decoded into the chain extension method's output type.
     ///
     /// If `true` the returned `u32` status code `code` is queried and
-    /// `<Self::ErrorCode as ink_lang::FromStatusCode>::from_status_code(code)` is called.
+    /// `<Self::ErrorCode as pro_lang::FromStatusCode>::from_status_code(code)` is called.
     /// The call to `from_status_code` returns `Result<(), Self::ErrorCode>`. If `Ok(())`
     /// the output buffer is queried and decoded as described above.
     /// If `Err(Self::ErrorCode)` the `Self::ErrorCode` is converted into `E` of `Result<T, E>`
@@ -101,26 +101,26 @@ pub struct ChainExtensionMethod {
 }
 
 impl ChainExtensionMethod {
-    /// Returns the Rust attributes of the ink! chain extension method.
+    /// Returns the Rust attributes of the pro! chain extension method.
     pub fn attrs(&self) -> Vec<syn::Attribute> {
         let (_, attrs) = ir::partition_attributes(self.item.attrs.iter().cloned())
             .expect(
-            "encountered unexpected invalid attributes for ink! chain extension method",
+            "encountered unexpected invalid attributes for pro! chain extension method",
         );
         attrs
     }
 
-    /// Returns the span of the ink! chain extension method.
+    /// Returns the span of the pro! chain extension method.
     pub fn span(&self) -> proc_macro2::Span {
         self.item.span()
     }
 
-    /// Returns the identifier of the ink! chain extension method.
+    /// Returns the identifier of the pro! chain extension method.
     pub fn ident(&self) -> &proc_macro2::Ident {
         &self.item.sig.ident
     }
 
-    /// Returns the method signature of the ink! chain extension method.
+    /// Returns the method signature of the pro! chain extension method.
     pub fn sig(&self) -> &syn::Signature {
         &self.item.sig
     }
@@ -137,12 +137,12 @@ impl ChainExtensionMethod {
         }
     }
 
-    /// Returns `true` if the chain extension method was flagged with `#[ink(handle_status)]`.
+    /// Returns `true` if the chain extension method was flagged with `#[pro(handle_status)]`.
     pub fn handle_status(&self) -> bool {
         self.handle_status
     }
 
-    /// Returns `true` if the chain extension method was flagged with `#[ink(returns_result)]`.
+    /// Returns `true` if the chain extension method was flagged with `#[pro(returns_result)]`.
     pub fn returns_result(&self) -> bool {
         self.returns_result
     }
@@ -170,11 +170,11 @@ impl<'a> Iterator for ChainExtensionMethodInputs<'a> {
     }
 }
 
-/// The unique ID of an ink! chain extension method.
+/// The unique ID of an pro! chain extension method.
 ///
 /// # Note
 ///
-/// The ink! attribute `#[ink(extension = N: u32)]` for chain extension methods.
+/// The pro! attribute `#[pro(extension = N: u32)]` for chain extension methods.
 ///
 /// Has a `func_id` extension ID to identify the associated chain extension method.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -198,7 +198,7 @@ impl TryFrom<syn::ItemTrait> for ChainExtension {
     type Error = syn::Error;
 
     fn try_from(item_trait: syn::ItemTrait) -> core::result::Result<Self, Self::Error> {
-        idents_lint::ensure_no_ink_identifiers(&item_trait)?;
+        idents_lint::ensure_no_pro_identifiers(&item_trait)?;
         Self::analyse_properties(&item_trait)?;
         let (error_code, methods) = Self::analyse_items(&item_trait)?;
         Ok(Self {
@@ -210,19 +210,19 @@ impl TryFrom<syn::ItemTrait> for ChainExtension {
 }
 
 impl ChainExtension {
-    /// Returns `Ok` if the trait matches all requirements for an ink! chain extension.
+    /// Returns `Ok` if the trait matches all requirements for an pro! chain extension.
     pub fn new(attr: TokenStream2, input: TokenStream2) -> Result<Self> {
         if !attr.is_empty() {
             return Err(format_err_spanned!(
                 attr,
-                "unexpected attribute input for ink! chain extension"
+                "unexpected attribute input for pro! chain extension"
             ))
         }
         let item_trait = syn::parse2::<syn::ItemTrait>(input)?;
         ChainExtension::try_from(item_trait)
     }
 
-    /// Analyses the properties of the ink! chain extension.
+    /// Analyses the properties of the pro! chain extension.
     ///
     /// # Errors
     ///
@@ -235,31 +235,31 @@ impl ChainExtension {
         if let Some(unsafety) = &item_trait.unsafety {
             return Err(format_err_spanned!(
                 unsafety,
-                "ink! chain extensions cannot be unsafe"
+                "pro! chain extensions cannot be unsafe"
             ))
         }
         if let Some(auto) = &item_trait.auto_token {
             return Err(format_err_spanned!(
                 auto,
-                "ink! chain extensions cannot be automatically implemented traits"
+                "pro! chain extensions cannot be automatically implemented traits"
             ))
         }
         if !item_trait.generics.params.is_empty() {
             return Err(format_err_spanned!(
                 item_trait.generics.params,
-                "ink! chain extensions must not be generic"
+                "pro! chain extensions must not be generic"
             ))
         }
         if !matches!(item_trait.vis, syn::Visibility::Public(_)) {
             return Err(format_err_spanned!(
                 item_trait.vis,
-                "ink! chain extensions must have public visibility"
+                "pro! chain extensions must have public visibility"
             ))
         }
         if !item_trait.supertraits.is_empty() {
             return Err(format_err_spanned!(
                 item_trait.supertraits,
-                "ink! chain extensions with supertraits are not supported, yet"
+                "pro! chain extensions with supertraits are not supported, yet"
             ))
         }
         Ok(())
@@ -298,7 +298,7 @@ impl ChainExtension {
         if item_type.default.is_none() {
             return Err(format_err_spanned!(
                 item_type,
-                "expected a default type for the ink! chain extension ErrorCode",
+                "expected a default type for the pro! chain extension ErrorCode",
             ))
         }
         match previous {
@@ -318,7 +318,7 @@ impl ChainExtension {
         Ok(())
     }
 
-    /// Returns `Ok` if all trait items respect the requirements for an ink! chain extension.
+    /// Returns `Ok` if all trait items respect the requirements for an pro! chain extension.
     ///
     /// # Errors
     ///
@@ -328,9 +328,9 @@ impl ChainExtension {
     ///     - macros definitions or usages
     ///     - unknown token sequences (verbatims)
     ///     - methods with default implementations
-    /// - If the trait contains methods which do not respect the ink! trait definition requirements:
+    /// - If the trait contains methods which do not respect the pro! trait definition requirements:
     ///     - All trait methods must not have a `self` receiver.
-    ///     - All trait methods must have an `#[ink(extension = N: u32)]` attribute that is the ID that
+    ///     - All trait methods must have an `#[pro(extension = N: u32)]` attribute that is the ID that
     ///       corresponds with the function ID of the respective chain extension call.
     ///
     /// # Note
@@ -348,13 +348,13 @@ impl ChainExtension {
                 syn::TraitItem::Const(const_trait_item) => {
                     return Err(format_err_spanned!(
                         const_trait_item,
-                        "associated constants in ink! chain extensions are not supported, yet"
+                        "associated constants in pro! chain extensions are not supported, yet"
                     ))
                 }
                 syn::TraitItem::Macro(macro_trait_item) => {
                     return Err(format_err_spanned!(
                         macro_trait_item,
-                        "macros in ink! chain extensions are not supported"
+                        "macros in pro! chain extensions are not supported"
                     ))
                 }
                 syn::TraitItem::Type(type_trait_item) => {
@@ -363,7 +363,7 @@ impl ChainExtension {
                 syn::TraitItem::Verbatim(verbatim) => {
                     return Err(format_err_spanned!(
                         verbatim,
-                        "encountered unsupported item in ink! chain extensions"
+                        "encountered unsupported item in pro! chain extensions"
                     ))
                 }
                 syn::TraitItem::Method(method_trait_item) => {
@@ -384,7 +384,7 @@ impl ChainExtension {
                 unknown => {
                     return Err(format_err_spanned!(
                         unknown,
-                        "encountered unknown or unsupported item in ink! chain extensions"
+                        "encountered unknown or unsupported item in pro! chain extensions"
                     ))
                 }
             }
@@ -394,7 +394,7 @@ impl ChainExtension {
             None => {
                 return Err(format_err_spanned!(
                     item_trait,
-                    "missing ErrorCode associated type from ink! chain extension",
+                    "missing ErrorCode associated type from pro! chain extension",
                 ))
             }
         };
@@ -405,7 +405,7 @@ impl ChainExtension {
     ///
     /// # Errors
     ///
-    /// - If the method is missing the `#[ink(extension = N: u32)]` attribute.
+    /// - If the method is missing the `#[pro(extension = N: u32)]` attribute.
     /// - If the method has a `self` receiver.
     /// - If the method declared as `unsafe`, `const` or `async`.
     /// - If the method has some explicit API.
@@ -414,46 +414,46 @@ impl ChainExtension {
         if let Some(default_impl) = &method.default {
             return Err(format_err_spanned!(
                 default_impl,
-                "ink! chain extension methods with default implementations are not supported"
+                "pro! chain extension methods with default implementations are not supported"
             ))
         }
         if let Some(constness) = &method.sig.constness {
             return Err(format_err_spanned!(
                 constness,
-                "const ink! chain extension methods are not supported"
+                "const pro! chain extension methods are not supported"
             ))
         }
         if let Some(asyncness) = &method.sig.asyncness {
             return Err(format_err_spanned!(
                 asyncness,
-                "async ink! chain extension methods are not supported"
+                "async pro! chain extension methods are not supported"
             ))
         }
         if let Some(unsafety) = &method.sig.unsafety {
             return Err(format_err_spanned!(
                 unsafety,
-                "unsafe ink! chain extension methods are not supported"
+                "unsafe pro! chain extension methods are not supported"
             ))
         }
         if let Some(abi) = &method.sig.abi {
             return Err(format_err_spanned!(
                 abi,
-                "ink! chain extension methods with non default ABI are not supported"
+                "pro! chain extension methods with non default ABI are not supported"
             ))
         }
         if let Some(variadic) = &method.sig.variadic {
             return Err(format_err_spanned!(
                 variadic,
-                "variadic ink! chain extension methods are not supported"
+                "variadic pro! chain extension methods are not supported"
             ))
         }
         if !method.sig.generics.params.is_empty() {
             return Err(format_err_spanned!(
                 method.sig.generics.params,
-                "generic ink! chain extension methods are not supported"
+                "generic pro! chain extension methods are not supported"
             ))
         }
-        match ir::first_ink_attribute(&method.attrs)?
+        match ir::first_pro_attribute(&method.attrs)?
                 .map(|attr| attr.first().kind().clone()) {
             Some(ir::AttributeArg::Extension(extension)) => {
                 Self::analyse_chain_extension_method(method, extension)
@@ -461,19 +461,19 @@ impl ChainExtension {
             Some(_unsupported) => {
                 Err(format_err_spanned!(
                     method,
-                    "encountered unsupported ink! attribute for ink! chain extension method. expected #[ink(extension = N: u32)] attribute"
+                    "encountered unsupported pro! attribute for pro! chain extension method. expected #[pro(extension = N: u32)] attribute"
                 ))
             }
             None => {
                 Err(format_err_spanned!(
                     method,
-                    "missing #[ink(extension = N: u32)] flag on ink! chain extension method"
+                    "missing #[pro(extension = N: u32)] flag on pro! chain extension method"
                 ))
             }
         }
     }
 
-    /// Analyses the properties of an ink! chain extension method.
+    /// Analyses the properties of an pro! chain extension method.
     ///
     /// # Errors
     ///
@@ -482,7 +482,7 @@ impl ChainExtension {
         item_method: &syn::TraitItemMethod,
         extension: ExtensionId,
     ) -> Result<ChainExtensionMethod> {
-        let (ink_attrs, _) = ir::sanitize_attributes(
+        let (pro_attrs, _) = ir::sanitize_attributes(
             item_method.span(),
             item_method.attrs.clone(),
             &ir::AttributeArgKind::Extension,
@@ -498,14 +498,14 @@ impl ChainExtension {
         if let Some(receiver) = item_method.sig.receiver() {
             return Err(format_err_spanned!(
                 receiver,
-                "ink! chain extension method must not have a `self` receiver",
+                "pro! chain extension method must not have a `self` receiver",
             ))
         }
         let result = ChainExtensionMethod {
             id: extension,
             item: item_method.clone(),
-            handle_status: ink_attrs.is_handle_status(),
-            returns_result: ink_attrs.is_returns_result(),
+            handle_status: pro_attrs.is_handle_status(),
+            returns_result: pro_attrs.is_returns_result(),
         };
         Ok(result)
     }
@@ -516,7 +516,7 @@ mod tests {
     use super::*;
 
     /// Checks if the token stream in `$chain_extension` results in the expected error message.
-    macro_rules! assert_ink_chain_extension_eq_err {
+    macro_rules! assert_pro_chain_extension_eq_err {
         ( error: $err_str:literal, $($chain_extension:tt)* ) => {
             assert_eq!(
                 <ChainExtension as TryFrom<syn::ItemTrait>>::try_from(syn::parse_quote! {
@@ -532,52 +532,52 @@ mod tests {
 
     #[test]
     fn unsafe_chain_extension_is_denied() {
-        assert_ink_chain_extension_eq_err!(
-            error: "ink! chain extensions cannot be unsafe",
+        assert_pro_chain_extension_eq_err!(
+            error: "pro! chain extensions cannot be unsafe",
             pub unsafe trait MyChainExtension {}
         );
     }
 
     #[test]
     fn auto_chain_extension_is_denied() {
-        assert_ink_chain_extension_eq_err!(
-            error: "ink! chain extensions cannot be automatically implemented traits",
+        assert_pro_chain_extension_eq_err!(
+            error: "pro! chain extensions cannot be automatically implemented traits",
             pub auto trait MyChainExtension {}
         );
     }
 
     #[test]
     fn non_pub_chain_extension_is_denied() {
-        assert_ink_chain_extension_eq_err!(
-            error: "ink! chain extensions must have public visibility",
+        assert_pro_chain_extension_eq_err!(
+            error: "pro! chain extensions must have public visibility",
             trait MyChainExtension {}
         );
-        assert_ink_chain_extension_eq_err!(
-            error: "ink! chain extensions must have public visibility",
+        assert_pro_chain_extension_eq_err!(
+            error: "pro! chain extensions must have public visibility",
             pub(crate) trait MyChainExtension {}
         );
     }
 
     #[test]
     fn generic_chain_extension_is_denied() {
-        assert_ink_chain_extension_eq_err!(
-            error: "ink! chain extensions must not be generic",
+        assert_pro_chain_extension_eq_err!(
+            error: "pro! chain extensions must not be generic",
             pub trait MyChainExtension<T> {}
         );
     }
 
     #[test]
     fn chain_extension_with_supertraits_is_denied() {
-        assert_ink_chain_extension_eq_err!(
-            error: "ink! chain extensions with supertraits are not supported, yet",
+        assert_pro_chain_extension_eq_err!(
+            error: "pro! chain extensions with supertraits are not supported, yet",
             pub trait MyChainExtension: SuperChainExtension {}
         );
     }
 
     #[test]
     fn chain_extension_containing_const_item_is_denied() {
-        assert_ink_chain_extension_eq_err!(
-            error: "associated constants in ink! chain extensions are not supported, yet",
+        assert_pro_chain_extension_eq_err!(
+            error: "associated constants in pro! chain extensions are not supported, yet",
             pub trait MyChainExtension {
                 const T: i32;
             }
@@ -586,7 +586,7 @@ mod tests {
 
     #[test]
     fn chain_extension_containing_invalid_associated_type_is_denied() {
-        assert_ink_chain_extension_eq_err!(
+        assert_pro_chain_extension_eq_err!(
             error: "chain extensions expect an associated type with name `ErrorCode` but found Type",
             pub trait MyChainExtension {
                 type Type;
@@ -596,31 +596,31 @@ mod tests {
 
     #[test]
     fn chain_extension_with_invalid_error_code() {
-        assert_ink_chain_extension_eq_err!(
+        assert_pro_chain_extension_eq_err!(
             error: "chain extensions expect an associated type with name `ErrorCode` but found IncorrectName",
             pub trait MyChainExtension {
                 type IncorrectName = ();
             }
         );
-        assert_ink_chain_extension_eq_err!(
+        assert_pro_chain_extension_eq_err!(
             error: "generic chain extension `ErrorCode` types are not supported",
             pub trait MyChainExtension {
                 type ErrorCode<T> = ();
             }
         );
-        assert_ink_chain_extension_eq_err!(
+        assert_pro_chain_extension_eq_err!(
             error: "bounded chain extension `ErrorCode` types are not supported",
             pub trait MyChainExtension {
                 type ErrorCode: Copy = ();
             }
         );
-        assert_ink_chain_extension_eq_err!(
-            error: "expected a default type for the ink! chain extension ErrorCode",
+        assert_pro_chain_extension_eq_err!(
+            error: "expected a default type for the pro! chain extension ErrorCode",
             pub trait MyChainExtension {
                 type ErrorCode;
             }
         );
-        assert_ink_chain_extension_eq_err!(
+        assert_pro_chain_extension_eq_err!(
             error: "encountered duplicate `ErrorCode` associated types for the chain extension",
             pub trait MyChainExtension {
                 type ErrorCode = ();
@@ -631,8 +631,8 @@ mod tests {
 
     #[test]
     fn chain_extension_containing_macro_is_denied() {
-        assert_ink_chain_extension_eq_err!(
-            error: "macros in ink! chain extensions are not supported",
+        assert_pro_chain_extension_eq_err!(
+            error: "macros in pro! chain extensions are not supported",
             pub trait MyChainExtension {
                 my_macro_call!();
             }
@@ -641,20 +641,20 @@ mod tests {
 
     #[test]
     fn chain_extension_containing_non_flagged_method_is_denied() {
-        assert_ink_chain_extension_eq_err!(
-            error: "missing #[ink(extension = N: u32)] flag on ink! chain extension method",
+        assert_pro_chain_extension_eq_err!(
+            error: "missing #[pro(extension = N: u32)] flag on pro! chain extension method",
             pub trait MyChainExtension {
                 fn non_flagged_1(&self);
             }
         );
-        assert_ink_chain_extension_eq_err!(
-            error: "missing #[ink(extension = N: u32)] flag on ink! chain extension method",
+        assert_pro_chain_extension_eq_err!(
+            error: "missing #[pro(extension = N: u32)] flag on pro! chain extension method",
             pub trait MyChainExtension {
                 fn non_flagged_2(&mut self);
             }
         );
-        assert_ink_chain_extension_eq_err!(
-            error: "missing #[ink(extension = N: u32)] flag on ink! chain extension method",
+        assert_pro_chain_extension_eq_err!(
+            error: "missing #[pro(extension = N: u32)] flag on pro! chain extension method",
             pub trait MyChainExtension {
                 fn non_flagged_3() -> Self;
             }
@@ -663,10 +663,10 @@ mod tests {
 
     #[test]
     fn chain_extension_containing_default_implemented_methods_is_denied() {
-        assert_ink_chain_extension_eq_err!(
-            error: "ink! chain extension methods with default implementations are not supported",
+        assert_pro_chain_extension_eq_err!(
+            error: "pro! chain extension methods with default implementations are not supported",
             pub trait MyChainExtension {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 fn default_implemented() -> Self {}
             }
         );
@@ -674,10 +674,10 @@ mod tests {
 
     #[test]
     fn chain_extension_containing_const_methods_is_denied() {
-        assert_ink_chain_extension_eq_err!(
-            error: "const ink! chain extension methods are not supported",
+        assert_pro_chain_extension_eq_err!(
+            error: "const pro! chain extension methods are not supported",
             pub trait MyChainExtension {
-                #[ink(extension = 1)]
+                #[pro(extension = 1)]
                 const fn const_constructor() -> Self;
             }
         );
@@ -685,10 +685,10 @@ mod tests {
 
     #[test]
     fn chain_extension_containing_async_methods_is_denied() {
-        assert_ink_chain_extension_eq_err!(
-            error: "async ink! chain extension methods are not supported",
+        assert_pro_chain_extension_eq_err!(
+            error: "async pro! chain extension methods are not supported",
             pub trait MyChainExtension {
-                #[ink(extension = 1)]
+                #[pro(extension = 1)]
                 async fn const_constructor() -> Self;
             }
         );
@@ -696,10 +696,10 @@ mod tests {
 
     #[test]
     fn chain_extension_containing_unsafe_methods_is_denied() {
-        assert_ink_chain_extension_eq_err!(
-            error: "unsafe ink! chain extension methods are not supported",
+        assert_pro_chain_extension_eq_err!(
+            error: "unsafe pro! chain extension methods are not supported",
             pub trait MyChainExtension {
-                #[ink(extension = 1)]
+                #[pro(extension = 1)]
                 unsafe fn const_constructor() -> Self;
             }
         );
@@ -707,10 +707,10 @@ mod tests {
 
     #[test]
     fn chain_extension_containing_methods_using_explicit_abi_is_denied() {
-        assert_ink_chain_extension_eq_err!(
-            error: "ink! chain extension methods with non default ABI are not supported",
+        assert_pro_chain_extension_eq_err!(
+            error: "pro! chain extension methods with non default ABI are not supported",
             pub trait MyChainExtension {
-                #[ink(extension = 1)]
+                #[pro(extension = 1)]
                 extern fn const_constructor() -> Self;
             }
         );
@@ -718,10 +718,10 @@ mod tests {
 
     #[test]
     fn chain_extension_containing_variadic_methods_is_denied() {
-        assert_ink_chain_extension_eq_err!(
-            error: "variadic ink! chain extension methods are not supported",
+        assert_pro_chain_extension_eq_err!(
+            error: "variadic pro! chain extension methods are not supported",
             pub trait MyChainExtension {
-                #[ink(extension = 1)]
+                #[pro(extension = 1)]
                 fn const_constructor(...) -> Self;
             }
         );
@@ -729,88 +729,88 @@ mod tests {
 
     #[test]
     fn chain_extension_containing_generic_methods_is_denied() {
-        assert_ink_chain_extension_eq_err!(
-            error: "generic ink! chain extension methods are not supported",
+        assert_pro_chain_extension_eq_err!(
+            error: "generic pro! chain extension methods are not supported",
             pub trait MyChainExtension {
-                #[ink(extension = 1)]
+                #[pro(extension = 1)]
                 fn const_constructor<T>() -> Self;
             }
         );
     }
 
     #[test]
-    fn chain_extension_containing_method_with_unsupported_ink_attribute_is_denied() {
-        assert_ink_chain_extension_eq_err!(
+    fn chain_extension_containing_method_with_unsupported_pro_attribute_is_denied() {
+        assert_pro_chain_extension_eq_err!(
             error: "\
-                encountered unsupported ink! attribute for ink! chain extension method. \
-                expected #[ink(extension = N: u32)] attribute",
+                encountered unsupported pro! attribute for pro! chain extension method. \
+                expected #[pro(extension = N: u32)] attribute",
             pub trait MyChainExtension {
-                #[ink(message)]
-                fn unsupported_ink_attribute(&self);
+                #[pro(message)]
+                fn unsupported_pro_attribute(&self);
             }
         );
-        assert_ink_chain_extension_eq_err!(
-            error: "unknown ink! attribute (path)",
+        assert_pro_chain_extension_eq_err!(
+            error: "unknown pro! attribute (path)",
             pub trait MyChainExtension {
-                #[ink(unknown)]
-                fn unknown_ink_attribute(&self);
+                #[pro(unknown)]
+                fn unknown_pro_attribute(&self);
             }
         );
     }
 
     #[test]
     fn chain_extension_containing_method_with_invalid_marker() {
-        assert_ink_chain_extension_eq_err!(
-            error: "could not parse `N` in `#[ink(extension = N)]` into a `u32` integer",
+        assert_pro_chain_extension_eq_err!(
+            error: "could not parse `N` in `#[pro(extension = N)]` into a `u32` integer",
             pub trait MyChainExtension {
-                #[ink(extension = -1)]
+                #[pro(extension = -1)]
                 fn has_self_receiver();
             }
         );
         let too_large = (u32::MAX as u64) + 1;
-        assert_ink_chain_extension_eq_err!(
-            error: "could not parse `N` in `#[ink(extension = N)]` into a `u32` integer",
+        assert_pro_chain_extension_eq_err!(
+            error: "could not parse `N` in `#[pro(extension = N)]` into a `u32` integer",
             pub trait MyChainExtension {
-                #[ink(extension = #too_large)]
+                #[pro(extension = #too_large)]
                 fn has_self_receiver();
             }
         );
-        assert_ink_chain_extension_eq_err!(
-            error: "expecteded `u32` integer type for `N` in #[ink(extension = N)]",
+        assert_pro_chain_extension_eq_err!(
+            error: "expecteded `u32` integer type for `N` in #[pro(extension = N)]",
             pub trait MyChainExtension {
-                #[ink(extension = "Hello, World!")]
+                #[pro(extension = "Hello, World!")]
                 fn has_self_receiver();
             }
         );
-        assert_ink_chain_extension_eq_err!(
-            error: "encountered #[ink(extension)] that is missing its N parameter. Did you mean #[ink(extension = N: u32)] ?",
+        assert_pro_chain_extension_eq_err!(
+            error: "encountered #[pro(extension)] that is missing its N parameter. Did you mean #[pro(extension = N: u32)] ?",
             pub trait MyChainExtension {
-                #[ink(extension)]
+                #[pro(extension)]
                 fn has_self_receiver();
             }
         );
 
-        assert_ink_chain_extension_eq_err!(
-            error: "encountered duplicate ink! attribute",
+        assert_pro_chain_extension_eq_err!(
+            error: "encountered duplicate pro! attribute",
             pub trait MyChainExtension {
-                #[ink(extension = 42)]
-                #[ink(extension = 42)]
+                #[pro(extension = 42)]
+                #[pro(extension = 42)]
                 fn duplicate_attributes() -> Self;
             }
         );
-        assert_ink_chain_extension_eq_err!(
-            error: "encountered ink! attribute arguments with equal kinds",
+        assert_pro_chain_extension_eq_err!(
+            error: "encountered pro! attribute arguments with equal kinds",
             pub trait MyChainExtension {
-                #[ink(extension = 1)]
-                #[ink(extension = 2)]
+                #[pro(extension = 1)]
+                #[pro(extension = 2)]
                 fn duplicate_attributes() -> Self;
             }
         );
-        assert_ink_chain_extension_eq_err!(
-            error: "encountered conflicting ink! attribute argument",
+        assert_pro_chain_extension_eq_err!(
+            error: "encountered conflicting pro! attribute argument",
             pub trait MyChainExtension {
-                #[ink(extension = 1)]
-                #[ink(message)]
+                #[pro(extension = 1)]
+                #[pro(message)]
                 fn conflicting_attributes() -> Self;
             }
         );
@@ -818,48 +818,48 @@ mod tests {
 
     #[test]
     fn chain_extension_containing_method_with_self_receiver_is_denied() {
-        assert_ink_chain_extension_eq_err!(
-            error: "ink! chain extension method must not have a `self` receiver",
+        assert_pro_chain_extension_eq_err!(
+            error: "pro! chain extension method must not have a `self` receiver",
             pub trait MyChainExtension {
                 type ErrorCode = ();
 
-                #[ink(extension = 1)]
+                #[pro(extension = 1)]
                 fn has_self_receiver(&self) -> Self;
             }
         );
-        assert_ink_chain_extension_eq_err!(
-            error: "ink! chain extension method must not have a `self` receiver",
+        assert_pro_chain_extension_eq_err!(
+            error: "pro! chain extension method must not have a `self` receiver",
             pub trait MyChainExtension {
                 type ErrorCode = ();
 
-                #[ink(extension = 1)]
+                #[pro(extension = 1)]
                 fn has_self_receiver(&mut self) -> Self;
             }
         );
-        assert_ink_chain_extension_eq_err!(
-            error: "ink! chain extension method must not have a `self` receiver",
+        assert_pro_chain_extension_eq_err!(
+            error: "pro! chain extension method must not have a `self` receiver",
             pub trait MyChainExtension {
                 type ErrorCode = ();
 
-                #[ink(extension = 1)]
+                #[pro(extension = 1)]
                 fn has_self_receiver(self) -> Self;
             }
         );
-        assert_ink_chain_extension_eq_err!(
-            error: "ink! chain extension method must not have a `self` receiver",
+        assert_pro_chain_extension_eq_err!(
+            error: "pro! chain extension method must not have a `self` receiver",
             pub trait MyChainExtension {
                 type ErrorCode = ();
 
-                #[ink(extension = 1)]
+                #[pro(extension = 1)]
                 fn has_self_receiver(self: &Self) -> Self;
             }
         );
-        assert_ink_chain_extension_eq_err!(
-            error: "ink! chain extension method must not have a `self` receiver",
+        assert_pro_chain_extension_eq_err!(
+            error: "pro! chain extension method must not have a `self` receiver",
             pub trait MyChainExtension {
                 type ErrorCode = ();
 
-                #[ink(extension = 1)]
+                #[pro(extension = 1)]
                 fn has_self_receiver(self: Self) -> Self;
             }
         );
@@ -867,12 +867,12 @@ mod tests {
 
     #[test]
     fn chain_extension_with_overlapping_extension_ids() {
-        assert_ink_chain_extension_eq_err!(
+        assert_pro_chain_extension_eq_err!(
             error: "encountered duplicate extension identifiers for the same chain extension",
             pub trait MyChainExtension {
-                #[ink(extension = 1)]
+                #[pro(extension = 1)]
                 fn same_id_1();
-                #[ink(extension = 1)]
+                #[pro(extension = 1)]
                 fn same_id_2();
             }
         );
@@ -884,15 +884,15 @@ mod tests {
                 pub trait MyChainExtension {
                     type ErrorCode = ();
 
-                    #[ink(extension = 1)]
+                    #[pro(extension = 1)]
                     fn extension_1();
-                    #[ink(extension = 2)]
+                    #[pro(extension = 2)]
                     fn extension_2(input: i32);
-                    #[ink(extension = 3)]
+                    #[pro(extension = 3)]
                     fn extension_3() -> i32;
-                    #[ink(extension = 4)]
+                    #[pro(extension = 4)]
                     fn extension_4(input: i32) -> i32;
-                    #[ink(extension = 5)]
+                    #[pro(extension = 5)]
                     fn extension_5(in1: i8, in2: i16, in3: i32, in4: i64) -> (u8, u16, u32, u64);
                 }
             }).unwrap();
@@ -932,22 +932,22 @@ mod tests {
                 pub trait MyChainExtension {
                     type ErrorCode = ();
 
-                    #[ink(extension = 1, handle_status = false)]
+                    #[pro(extension = 1, handle_status = false)]
                     fn extension_a();
-                    #[ink(extension = 2, returns_result = false)]
+                    #[pro(extension = 2, returns_result = false)]
                     fn extension_b();
-                    #[ink(extension = 3, handle_status = false, returns_result = false)]
+                    #[pro(extension = 3, handle_status = false, returns_result = false)]
                     fn extension_c();
 
-                    #[ink(extension = 4)]
-                    #[ink(handle_status = false)]
+                    #[pro(extension = 4)]
+                    #[pro(handle_status = false)]
                     fn extension_d();
-                    #[ink(extension = 5)]
-                    #[ink(returns_result = false)]
+                    #[pro(extension = 5)]
+                    #[pro(returns_result = false)]
                     fn extension_e();
-                    #[ink(extension = 6)]
-                    #[ink(handle_status = false)]
-                    #[ink(returns_result = false)]
+                    #[pro(extension = 6)]
+                    #[pro(handle_status = false)]
+                    #[pro(returns_result = false)]
                     fn extension_f();
                 }
             })

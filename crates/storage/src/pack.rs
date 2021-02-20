@@ -21,8 +21,8 @@ use crate::traits::{
     PackedLayout,
     SpreadLayout,
 };
-use ink_prelude::vec::Vec;
-use ink_primitives::Key;
+use pro_prelude::vec::Vec;
+use pro_primitives::Key;
 
 /// Packs the inner `T` so that it only occupies a single contract storage cell.
 ///
@@ -142,12 +142,12 @@ where
 #[cfg(feature = "std")]
 const _: () = {
     use crate::traits::StorageLayout;
-    use ink_metadata::layout::{
+    use pro_metadata::layout::{
         CellLayout,
         Layout,
         LayoutKey,
     };
-    use scale_info::TypeInfo;
+    use tetsy_scale_info::TypeInfo;
 
     impl<T> StorageLayout for Pack<T>
     where
@@ -312,7 +312,7 @@ where
     }
 }
 
-impl<T> ink_prelude::borrow::Borrow<T> for Pack<T>
+impl<T> pro_prelude::borrow::Borrow<T> for Pack<T>
 where
     T: PackedLayout,
 {
@@ -321,7 +321,7 @@ where
     }
 }
 
-impl<T> ink_prelude::borrow::BorrowMut<T> for Pack<T>
+impl<T> pro_prelude::borrow::BorrowMut<T> for Pack<T>
 where
     T: PackedLayout,
 {
@@ -351,12 +351,12 @@ mod tests {
             DerefMut,
         },
     };
-    use ink_env::test::DefaultAccounts;
-    use ink_prelude::borrow::{
+    use pro_env::test::DefaultAccounts;
+    use pro_prelude::borrow::{
         Borrow,
         BorrowMut,
     };
-    use ink_primitives::Key;
+    use pro_primitives::Key;
 
     type ComplexTuple = (u8, [i32; 4], (bool, i32));
 
@@ -448,9 +448,9 @@ mod tests {
 
     fn run_test<F>(f: F)
     where
-        F: FnOnce(DefaultAccounts<ink_env::DefaultEnvironment>),
+        F: FnOnce(DefaultAccounts<pro_env::DefaultEnvironment>),
     {
-        ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|default_accounts| {
+        pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|default_accounts| {
             f(default_accounts);
             Ok(())
         })

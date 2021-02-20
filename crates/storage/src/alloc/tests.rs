@@ -26,11 +26,11 @@ use crate::{
         SpreadLayout,
     },
 };
-use ink_env::{
+use pro_env::{
     test,
     DefaultEnvironment,
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 fn run_default_test<F>(f: F)
 where

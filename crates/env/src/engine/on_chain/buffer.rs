@@ -105,7 +105,7 @@ impl<'a> scale::Output for EncodeScope<'a> {
 ///
 /// # Note
 ///
-/// This is used to efficiently chunk up ink!'s internal static 16kB buffer
+/// This is used to efficiently chunk up pro!'s internal static 16kB buffer
 /// into smaller sub buffers for processing different parts of computations.
 #[derive(Debug)]
 pub struct ScopedBuffer<'a> {

@@ -28,7 +28,7 @@ use quote::{
 };
 use syn::spanned::Spanned as _;
 
-/// Generates `#[cfg(..)]` code to guard against compilation under `ink-as-dependency`.
+/// Generates `#[cfg(..)]` code to guard against compilation under `pro-as-dependency`.
 #[derive(From)]
 pub struct CrossCallingConflictCfg<'a> {
     contract: &'a ir::Contract,
@@ -37,13 +37,13 @@ pub struct CrossCallingConflictCfg<'a> {
 impl GenerateCode for CrossCallingConflictCfg<'_> {
     fn generate_code(&self) -> TokenStream2 {
         if self.contract.config().is_compile_as_dependency_enabled() {
-            return quote! { #[cfg(feature = "__ink_DO_NOT_COMPILE")] }
+            return quote! { #[cfg(feature = "__pro_DO_NOT_COMPILE")] }
         }
-        quote! { #[cfg(not(feature = "ink-as-dependency"))] }
+        quote! { #[cfg(not(feature = "pro-as-dependency"))] }
     }
 }
 
-/// Generates code for using this ink! contract as a dependency.
+/// Generates code for using this pro! contract as a dependency.
 #[derive(From)]
 pub struct CrossCalling<'a> {
     contract: &'a ir::Contract,
@@ -72,17 +72,17 @@ impl CrossCalling<'_> {
             return None
         }
         Some(quote! {
-            #[cfg(feature = "ink-as-dependency")]
+            #[cfg(feature = "pro-as-dependency")]
         })
     }
 
-    /// Generates code for the ink! storage struct for cross-calling purposes.
+    /// Generates code for the pro! storage struct for cross-calling purposes.
     ///
     /// # Note
     ///
     /// This always consists of a single `AccountId` and can be viewed as a
     /// reference to a live smart contract instance of the same type. It will
-    /// forward all calls via ink!'s provided cross-calling infrastructure
+    /// forward all calls via pro!'s provided cross-calling infrastructure
     /// automatically over the chain.
     fn generate_storage(&self) -> TokenStream2 {
         let cfg = self.generate_cfg();
@@ -98,14 +98,14 @@ impl CrossCalling<'_> {
                 Debug,
                 ::scale::Encode,
                 ::scale::Decode,
-                ::ink_storage::traits::SpreadLayout,
-                ::ink_storage::traits::PackedLayout,
+                ::pro_storage::traits::SpreadLayout,
+                ::pro_storage::traits::PackedLayout,
             )]
             #[cfg_attr(
                 feature = "std",
                 derive(
-                    ::scale_info::TypeInfo,
-                    ::ink_storage::traits::StorageLayout,
+                    ::tetsy_scale_info::TypeInfo,
+                    ::pro_storage::traits::StorageLayout,
                 )
             )]
             pub struct #ident {
@@ -115,7 +115,7 @@ impl CrossCalling<'_> {
     }
 
     /// Generates code for the trait implementations required to make the
-    /// generated ink! storage struct for cross-calling work out of the box
+    /// generated pro! storage struct for cross-calling work out of the box
     /// for the cross-calling infrastructure.
     fn generate_standard_impls(&self) -> TokenStream2 {
         let cfg = self.generate_cfg();
@@ -123,14 +123,14 @@ impl CrossCalling<'_> {
         quote! {
             #cfg
             const _: () = {
-                impl ::ink_env::call::FromAccountId<Environment> for #ident {
+                impl ::pro_env::call::FromAccountId<Environment> for #ident {
                     #[inline]
                     fn from_account_id(account_id: AccountId) -> Self {
                         Self { account_id }
                     }
                 }
 
-                impl ::ink_lang::ToAccountId<Environment> for #ident {
+                impl ::pro_lang::ToAccountId<Environment> for #ident {
                     #[inline]
                     fn to_account_id(&self) -> AccountId {
                         self.account_id
@@ -140,23 +140,23 @@ impl CrossCalling<'_> {
         }
     }
 
-    /// Builds up the [`ink_env::call::ArgumentList`] type structure for the given types.
+    /// Builds up the [`pro_env::call::ArgumentList`] type structure for the given types.
     fn generate_arg_list<'a, Args>(args: Args) -> TokenStream2
     where
         Args: IntoIterator<Item = &'a syn::Type>,
         <Args as IntoIterator>::IntoIter: DoubleEndedIterator,
     {
         args.into_iter().fold(
-            quote! { ::ink_env::call::utils::EmptyArgumentList },
+            quote! { ::pro_env::call::utils::EmptyArgumentList },
             |rest, arg| quote! {
-                ::ink_env::call::utils::ArgumentList<::ink_env::call::utils::Argument<#arg>, #rest>
+                ::pro_env::call::utils::ArgumentList<::pro_env::call::utils::Argument<#arg>, #rest>
             }
         )
     }
 
     /// Returns the identifier for the generated call forwarder utility.
     fn call_forwarder_ident() -> Ident {
-        format_ident!("__ink_CallForwarder")
+        format_ident!("__pro_CallForwarder")
     }
 
     fn generate_call_forwarder_trait_ghost_message(
@@ -166,8 +166,8 @@ impl CrossCalling<'_> {
         let ident = message.ident();
         let output_ident = format_ident!("{}Out", ident.to_string().to_camel_case());
         let composed_selector = message.composed_selector().as_bytes().to_owned();
-        let linker_error_ident = format_ident!(
-            "__ink_enforce_error_for_message_0x{:02X}{:02X}{:02X}{:02X}",
+        let lproer_error_ident = format_ident!(
+            "__pro_enforce_error_for_message_0x{:02X}{:02X}{:02X}{:02X}",
             composed_selector[0],
             composed_selector[1],
             composed_selector[2],
@@ -177,7 +177,7 @@ impl CrossCalling<'_> {
         let input_bindings = message
             .inputs()
             .enumerate()
-            .map(|(n, _)| format_ident!("__ink_binding_{}", n))
+            .map(|(n, _)| format_ident!("__pro_binding_{}", n))
             .collect::<Vec<_>>();
         let input_types = message
             .inputs()
@@ -206,9 +206,9 @@ impl CrossCalling<'_> {
                 #( #input_bindings : #input_types ),*
             ) -> Self::#output_ident {
                 extern {
-                    fn #linker_error_ident() -> !;
+                    fn #lproer_error_ident() -> !;
                 }
-                unsafe { #linker_error_ident() }
+                unsafe { #lproer_error_ident() }
             }
         )
     }
@@ -224,7 +224,7 @@ impl CrossCalling<'_> {
         let input_bindings = message
             .inputs()
             .enumerate()
-            .map(|(n, _)| format_ident!("__ink_binding_{}", n))
+            .map(|(n, _)| format_ident!("__pro_binding_{}", n))
             .collect::<Vec<_>>();
         let input_types = message
             .inputs()
@@ -234,7 +234,7 @@ impl CrossCalling<'_> {
         let output = message.output();
         let output_sig = output.map_or_else(
             || quote! { () },
-            |output| quote! { ::ink_env::call::utils::ReturnType<#output> },
+            |output| quote! { ::pro_env::call::utils::ReturnType<#output> },
         );
         let pub_tok = match message.item_impl().trait_path() {
             Some(_) => None,
@@ -246,13 +246,13 @@ impl CrossCalling<'_> {
         };
         quote_spanned!(span=>
             #[allow(clippy::type_complexity)]
-            type #output_ident = ::ink_env::call::CallBuilder<
+            type #output_ident = ::pro_env::call::CallBuilder<
                 Environment,
-                ::ink_env::call::utils::Set<AccountId>,
-                ::ink_env::call::utils::Unset<u64>,
-                ::ink_env::call::utils::Unset<Balance>,
-                ::ink_env::call::utils::Set<::ink_env::call::ExecutionInput<#arg_list>>,
-                ::ink_env::call::utils::Set<#output_sig>,
+                ::pro_env::call::utils::Set<AccountId>,
+                ::pro_env::call::utils::Unset<u64>,
+                ::pro_env::call::utils::Unset<Balance>,
+                ::pro_env::call::utils::Set<::pro_env::call::ExecutionInput<#arg_list>>,
+                ::pro_env::call::utils::Set<#output_sig>,
             >;
 
             #( #attrs )*
@@ -260,11 +260,11 @@ impl CrossCalling<'_> {
             #pub_tok fn #ident(
                 #receiver #(, #input_bindings : #input_types )*
             ) -> Self::#output_ident {
-                ::ink_env::call::build_call::<Environment>()
-                    .callee(::ink_lang::ToAccountId::to_account_id(self.contract))
+                ::pro_env::call::build_call::<Environment>()
+                    .callee(::pro_lang::ToAccountId::to_account_id(self.contract))
                     .exec_input(
-                        ::ink_env::call::ExecutionInput::new(
-                            ::ink_env::call::Selector::new([ #( #composed_selector ),* ])
+                        ::pro_env::call::ExecutionInput::new(
+                            ::pro_env::call::Selector::new([ #( #composed_selector ),* ])
                         )
                         #(
                             .push_arg(#input_bindings)
@@ -280,7 +280,7 @@ impl CrossCalling<'_> {
     /// The `mutable` parameter indicates whether only read-only (`false`) or
     /// write-only (`true`) messages shall be valid calls. For non valid messages
     /// an invalid implementation is provided so that actually calling those
-    /// will result in a compiler or linker error.
+    /// will result in a compiler or lproer error.
     fn generate_call_forwarder_trait_message(
         mutable: bool,
         message: ir::CallableWithSelector<ir::Message>,
@@ -297,7 +297,7 @@ impl CrossCalling<'_> {
     /// Note that constructors never need to be forwarded and that we only
     /// provide their implementations to satisfy the implementation block.
     /// We generally try to generate code in a way that actually calling
-    /// those constructors will result in a compiler or linker error.
+    /// those constructors will result in a compiler or lproer error.
     fn generate_call_forwarder_trait_constructor(
         constructor: ir::CallableWithSelector<ir::Constructor>,
     ) -> TokenStream2 {
@@ -306,8 +306,8 @@ impl CrossCalling<'_> {
         let ident = constructor.ident();
         let output_ident = format_ident!("{}Out", ident.to_string().to_camel_case());
         let composed_selector = constructor.composed_selector().as_bytes().to_owned();
-        let linker_error_ident = format_ident!(
-            "__ink_enforce_error_for_constructor_0x{:02X}{:02X}{:02X}{:02X}",
+        let lproer_error_ident = format_ident!(
+            "__pro_enforce_error_for_constructor_0x{:02X}{:02X}{:02X}{:02X}",
             composed_selector[0],
             composed_selector[1],
             composed_selector[2],
@@ -316,14 +316,14 @@ impl CrossCalling<'_> {
         let input_bindings = constructor
             .inputs()
             .enumerate()
-            .map(|(n, _)| format_ident!("__ink_binding_{}", n))
+            .map(|(n, _)| format_ident!("__pro_binding_{}", n))
             .collect::<Vec<_>>();
         let input_types = constructor
             .inputs()
             .map(|pat_type| &*pat_type.ty)
             .collect::<Vec<_>>();
         quote_spanned!(span =>
-            type #output_ident = ::ink_lang::NeverReturns;
+            type #output_ident = ::pro_lang::NeverReturns;
 
             #( #attrs )*
             #[cold]
@@ -332,9 +332,9 @@ impl CrossCalling<'_> {
                 #( #input_bindings : #input_types ),*
             ) -> Self::#output_ident {
                 extern {
-                    fn #linker_error_ident() -> !;
+                    fn #lproer_error_ident() -> !;
                 }
-                unsafe { #linker_error_ident() }
+                unsafe { #lproer_error_ident() }
             }
         )
     }
@@ -366,7 +366,7 @@ impl CrossCalling<'_> {
         let trait_ident = item_impl
             .trait_ident()
             .expect("encountered missing trait identifier for trait impl block");
-        let hash = ir::InkTrait::compute_verify_hash(
+        let hash = ir::ProTrait::compute_verify_hash(
             trait_ident,
             item_impl.iter_constructors().map(|constructor| {
                 let ident = constructor.ident().clone();
@@ -382,11 +382,11 @@ impl CrossCalling<'_> {
         );
         let checksum = u32::from_be_bytes([hash[0], hash[1], hash[2], hash[3]]) as usize;
         quote_spanned!(span =>
-            unsafe impl<'a> ::ink_lang::CheckedInkTrait<[(); #checksum]> for #forwarder_ident<&'a #mut_tok #storage_ident> {}
+            unsafe impl<'a> ::pro_lang::CheckedProTrait<[(); #checksum]> for #forwarder_ident<&'a #mut_tok #storage_ident> {}
 
             #( #attrs )*
             impl<'a> #trait_path for #forwarder_ident<&'a #mut_tok #storage_ident> {
-                type __ink_Checksum = [(); #checksum];
+                type __pro_Checksum = [(); #checksum];
 
                 #( #constructors )*
                 #( #messages )*
@@ -404,7 +404,7 @@ impl CrossCalling<'_> {
         let input_bindings = message
             .inputs()
             .enumerate()
-            .map(|(n, _)| format_ident!("__ink_binding_{}", n))
+            .map(|(n, _)| format_ident!("__pro_binding_{}", n))
             .collect::<Vec<_>>();
         let input_types = message
             .inputs()
@@ -414,7 +414,7 @@ impl CrossCalling<'_> {
         let output = message.output();
         let output_sig = output.map_or_else(
             || quote! { () },
-            |output| quote! { ::ink_env::call::utils::ReturnType<#output> },
+            |output| quote! { ::pro_env::call::utils::ReturnType<#output> },
         );
         let pub_tok = match message.item_impl().trait_path() {
             Some(_) => None,
@@ -427,19 +427,19 @@ impl CrossCalling<'_> {
             #pub_tok fn #ident(
                 self,
                 #( #input_bindings : #input_types ),*
-            ) -> ::ink_env::call::CallBuilder<
+            ) -> ::pro_env::call::CallBuilder<
                 Environment,
-                ::ink_env::call::utils::Set<AccountId>,
-                ::ink_env::call::utils::Unset<u64>,
-                ::ink_env::call::utils::Unset<Balance>,
-                ::ink_env::call::utils::Set<::ink_env::call::ExecutionInput<#arg_list>>,
-                ::ink_env::call::utils::Set<#output_sig>,
+                ::pro_env::call::utils::Set<AccountId>,
+                ::pro_env::call::utils::Unset<u64>,
+                ::pro_env::call::utils::Unset<Balance>,
+                ::pro_env::call::utils::Set<::pro_env::call::ExecutionInput<#arg_list>>,
+                ::pro_env::call::utils::Set<#output_sig>,
             > {
-                ::ink_env::call::build_call::<Environment>()
-                    .callee(::ink_lang::ToAccountId::to_account_id(self.contract))
+                ::pro_env::call::build_call::<Environment>()
+                    .callee(::pro_lang::ToAccountId::to_account_id(self.contract))
                     .exec_input(
-                        ::ink_env::call::ExecutionInput::new(
-                            ::ink_env::call::Selector::new([ #( #composed_selector ),* ])
+                        ::pro_env::call::ExecutionInput::new(
+                            ::pro_env::call::Selector::new([ #( #composed_selector ),* ])
                         )
                         #(
                             .push_arg(#input_bindings)
@@ -505,7 +505,7 @@ impl CrossCalling<'_> {
         quote! {
             #cfg
             const _: () = {
-                impl<'a> ::ink_lang::ForwardCall for &'a #storage_ident {
+                impl<'a> ::pro_lang::ForwardCall for &'a #storage_ident {
                     type Forwarder = #forwarder_ident<&'a #storage_ident>;
 
                     #[inline]
@@ -514,7 +514,7 @@ impl CrossCalling<'_> {
                     }
                 }
 
-                impl<'a> ::ink_lang::ForwardCallMut for &'a mut #storage_ident {
+                impl<'a> ::pro_lang::ForwardCallMut for &'a mut #storage_ident {
                     type Forwarder = #forwarder_ident<&'a mut #storage_ident>;
 
                     #[inline]
@@ -586,7 +586,7 @@ impl CrossCalling<'_> {
 
             #[inline]
             #opt_pub fn #ident( #receiver #(, #inputs_sig )* ) -> Self::#output_ident {
-                <&#opt_mut Self as ::ink_lang::#forward_trait>::#forward_ident(self)
+                <&#opt_mut Self as ::pro_lang::#forward_trait>::#forward_ident(self)
                     .#ident( #( #inputs_params ),* )
                     .fire()
                     .expect(#error_str)
@@ -606,7 +606,7 @@ impl CrossCalling<'_> {
         let input_bindings = constructor
             .inputs()
             .enumerate()
-            .map(|(n, _)| format_ident!("__ink_binding_{}", n))
+            .map(|(n, _)| format_ident!("__pro_binding_{}", n))
             .collect::<Vec<_>>();
         let input_types = constructor
             .inputs()
@@ -615,13 +615,13 @@ impl CrossCalling<'_> {
         let arg_list = Self::generate_arg_list(input_types.iter().cloned());
         quote_spanned!(span =>
             #[allow(clippy::type_complexity)]
-            type #output_ident = ::ink_env::call::CreateBuilder<
+            type #output_ident = ::pro_env::call::CreateBuilder<
                 Environment,
-                ::ink_env::call::utils::Unset<Hash>,
-                ::ink_env::call::utils::Unset<u64>,
-                ::ink_env::call::utils::Unset<Balance>,
-                ::ink_env::call::utils::Set<::ink_env::call::ExecutionInput<#arg_list>>,
-                ::ink_env::call::utils::Unset<::ink_env::call::state::Salt>,
+                ::pro_env::call::utils::Unset<Hash>,
+                ::pro_env::call::utils::Unset<u64>,
+                ::pro_env::call::utils::Unset<Balance>,
+                ::pro_env::call::utils::Set<::pro_env::call::ExecutionInput<#arg_list>>,
+                ::pro_env::call::utils::Unset<::pro_env::call::state::Salt>,
                 Self,
             >;
 
@@ -630,10 +630,10 @@ impl CrossCalling<'_> {
             fn #ident(
                 #( #input_bindings : #input_types ),*
             ) -> Self::#output_ident {
-                ::ink_env::call::build_create::<Environment, Salt, Self>()
+                ::pro_env::call::build_create::<Environment, Salt, Self>()
                     .exec_input(
-                        ::ink_env::call::ExecutionInput::new(
-                            ::ink_env::call::Selector::new([ #( #composed_selector ),* ])
+                        ::pro_env::call::ExecutionInput::new(
+                            ::pro_env::call::Selector::new([ #( #composed_selector ),* ])
                         )
                         #(
                             .push_arg(#input_bindings)
@@ -661,7 +661,7 @@ impl CrossCalling<'_> {
         let constructors = impl_block
             .iter_constructors()
             .map(Self::generate_trait_impl_block_constructor);
-        let hash = ir::InkTrait::compute_verify_hash(
+        let hash = ir::ProTrait::compute_verify_hash(
             trait_ident,
             impl_block.iter_constructors().map(|constructor| {
                 let ident = constructor.ident().clone();
@@ -678,12 +678,12 @@ impl CrossCalling<'_> {
         let checksum = u32::from_be_bytes([hash[0], hash[1], hash[2], hash[3]]) as usize;
         quote_spanned!(span =>
             #cfg
-            unsafe impl ::ink_lang::CheckedInkTrait<[(); #checksum]> for #self_type {}
+            unsafe impl ::pro_lang::CheckedProTrait<[(); #checksum]> for #self_type {}
 
             #cfg
             #( #attrs )*
             impl #trait_path for #self_type {
-                type __ink_Checksum = [(); #checksum];
+                type __pro_Checksum = [(); #checksum];
 
                 #( #messages )*
                 #( #constructors )*
@@ -706,7 +706,7 @@ impl CrossCalling<'_> {
         let input_bindings = constructor
             .inputs()
             .enumerate()
-            .map(|(n, _)| format_ident!("__ink_binding_{}", n))
+            .map(|(n, _)| format_ident!("__pro_binding_{}", n))
             .collect::<Vec<_>>();
         let input_types = constructor
             .inputs()
@@ -719,19 +719,19 @@ impl CrossCalling<'_> {
             #[allow(clippy::type_complexity)]
             pub fn #ident(
                 #( #input_bindings : #input_types ),*
-            ) -> ::ink_env::call::CreateBuilder<
+            ) -> ::pro_env::call::CreateBuilder<
                 Environment,
-                ::ink_env::call::utils::Unset<Hash>,
-                ::ink_env::call::utils::Unset<u64>,
-                ::ink_env::call::utils::Unset<Balance>,
-                ::ink_env::call::utils::Set<::ink_env::call::ExecutionInput<#arg_list>>,
-                ::ink_env::call::utils::Unset<::ink_env::call::state::Salt>,
+                ::pro_env::call::utils::Unset<Hash>,
+                ::pro_env::call::utils::Unset<u64>,
+                ::pro_env::call::utils::Unset<Balance>,
+                ::pro_env::call::utils::Set<::pro_env::call::ExecutionInput<#arg_list>>,
+                ::pro_env::call::utils::Unset<::pro_env::call::state::Salt>,
                 Self,
             > {
-                ::ink_env::call::build_create::<Environment, Self>()
+                ::pro_env::call::build_create::<Environment, Self>()
                     .exec_input(
-                        ::ink_env::call::ExecutionInput::new(
-                            ::ink_env::call::Selector::new([ #( #composed_selector ),* ])
+                        ::pro_env::call::ExecutionInput::new(
+                            ::pro_env::call::Selector::new([ #( #composed_selector ),* ])
                         )
                         #(
                             .push_arg(#input_bindings)
@@ -777,7 +777,7 @@ impl CrossCalling<'_> {
         quote_spanned!(span =>
             #[inline]
             #opt_pub fn #ident( #receiver #(, #inputs_sig )* ) #output_sig {
-                <&#opt_mut Self as ::ink_lang::#forward_trait>::#forward_ident(self)
+                <&#opt_mut Self as ::pro_lang::#forward_trait>::#forward_ident(self)
                     .#ident( #( #inputs_params ),* )
                     .fire()
                     .expect(#error_str)

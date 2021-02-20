@@ -34,8 +34,8 @@ use core::{
     fmt,
     fmt::Debug,
 };
-use ink_prelude::vec::Vec;
-use ink_primitives::Key;
+use pro_prelude::vec::Vec;
+use pro_primitives::Key;
 
 /// The entry of a single cached value of a lazy storage data structure.
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]

@@ -19,7 +19,7 @@ mod chain_extension;
 mod config;
 mod contract;
 mod idents_lint;
-mod ink_test;
+mod pro_test;
 mod item;
 mod item_impl;
 mod item_mod;
@@ -31,14 +31,14 @@ pub mod utils;
 use self::attrs::Attribute;
 
 use self::attrs::{
-    contains_ink_attributes,
-    first_ink_attribute,
+    contains_pro_attributes,
+    first_pro_attribute,
     partition_attributes,
     sanitize_attributes,
     AttributeArg,
     AttributeArgKind,
     AttributeFrag,
-    InkAttribute,
+    ProAttribute,
 };
 pub use self::{
     attrs::Namespace,
@@ -49,10 +49,10 @@ pub use self::{
     },
     config::Config,
     contract::Contract,
-    ink_test::InkTest,
+    pro_test::ProTest,
     item::{
         Event,
-        InkItem,
+        ProItem,
         Item,
         Storage,
     },
@@ -77,10 +77,10 @@ pub use self::{
     },
     selector::Selector,
     trait_def::{
-        InkTrait,
-        InkTraitConstructor,
-        InkTraitItem,
-        InkTraitMessage,
-        IterInkTraitItems,
+        ProTrait,
+        ProTraitConstructor,
+        ProTraitItem,
+        ProTraitMessage,
+        IterProTraitItems,
     },
 };

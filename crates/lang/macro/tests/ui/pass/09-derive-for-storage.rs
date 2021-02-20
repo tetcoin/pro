@@ -1,18 +1,18 @@
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract]
+#[pro::contract]
 mod derive_for_storage {
-    #[ink(storage)]
+    #[pro(storage)]
     #[derive(Default)]
     pub struct DeriveForStorage {}
 
     impl DeriveForStorage {
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn constructor() -> Self {
             Default::default()
         }
 
-        #[ink(message)]
+        #[pro(message)]
         pub fn message(&self) {}
     }
 }

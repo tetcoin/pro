@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use crate::Result;
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 #[test]
 fn store_load_clear() -> Result<()> {

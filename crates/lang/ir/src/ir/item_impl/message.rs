@@ -27,7 +27,7 @@ use proc_macro2::{
 };
 use syn::spanned::Spanned as _;
 
-/// The receiver of an ink! message.
+/// The receiver of an pro! message.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Receiver {
     /// The `&self` message receiver.
@@ -58,7 +58,7 @@ impl Receiver {
     }
 }
 
-/// An ink! message definition.
+/// An pro! message definition.
 ///
 /// # Example
 ///
@@ -66,9 +66,9 @@ impl Receiver {
 ///
 /// ```
 /// # use core::convert::TryFrom;
-/// # <ink_lang_ir::ItemImpl as TryFrom<syn::ItemImpl>>::try_from(syn::parse_quote! {
+/// # <pro_lang_ir::ItemImpl as TryFrom<syn::ItemImpl>>::try_from(syn::parse_quote! {
 /// impl MyStorage {
-///     #[ink(message)]
+///     #[pro(message)]
 ///     pub fn my_message(&self, input: i32) -> bool {
 ///         /* message implementation goes here */
 /// #       unimplemented!()
@@ -81,9 +81,9 @@ impl Receiver {
 ///
 /// ```
 /// # use core::convert::TryFrom;
-/// # let event = <ink_lang_ir::ItemImpl as TryFrom<syn::ItemImpl>>::try_from(syn::parse_quote! {
+/// # let event = <pro_lang_ir::ItemImpl as TryFrom<syn::ItemImpl>>::try_from(syn::parse_quote! {
 /// impl MyTrait for MyStorage {
-///     #[ink(message)]
+///     #[pro(message)]
 ///     fn my_message(&mut self, input: bool) -> i32 {
 ///         /* message implementation goes here */
 /// #       unimplemented!()
@@ -95,7 +95,7 @@ impl Receiver {
 pub struct Message {
     /// The underlying Rust method item.
     pub(super) item: syn::ImplItemMethod,
-    /// If the ink! message can receive funds.
+    /// If the pro! message can receive funds.
     is_payable: bool,
     /// An optional user provided selector.
     ///
@@ -107,7 +107,7 @@ pub struct Message {
 }
 
 impl quote::ToTokens for Message {
-    /// We mainly implement this trait for this ink! type to have a derived
+    /// We mainly implement this trait for this pro! type to have a derived
     /// [`Spanned`](`syn::spanned::Spanned`) implementation for it.
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         self.item.to_tokens(tokens)
@@ -131,7 +131,7 @@ impl Message {
         fn bail(span: Span) -> syn::Error {
             format_err!(
                 span,
-                "ink! messages must have `&self` or `&mut self` receiver",
+                "pro! messages must have `&self` or `&mut self` receiver",
             )
         }
         match fn_args.next() {
@@ -146,7 +146,7 @@ impl Message {
         Ok(())
     }
 
-    /// Ensures that the ink! message does not return `Self`.
+    /// Ensures that the pro! message does not return `Self`.
     ///
     /// # Errors
     ///
@@ -161,7 +161,7 @@ impl Message {
                     if type_path.path.is_ident("Self") {
                         return Err(format_err!(
                             ret_type,
-                            "ink! messages must not return `Self`"
+                            "pro! messages must not return `Self`"
                         ))
                     }
                 }
@@ -170,12 +170,12 @@ impl Message {
         Ok(())
     }
 
-    /// Sanitizes the attributes for the ink! message.
+    /// Sanitizes the attributes for the pro! message.
     ///
-    /// Returns a tuple of ink! attributes and non-ink! attributes.
+    /// Returns a tuple of pro! attributes and non-pro! attributes.
     fn sanitize_attributes(
         method_item: &syn::ImplItemMethod,
-    ) -> Result<(ir::InkAttribute, Vec<syn::Attribute>), syn::Error> {
+    ) -> Result<(ir::ProAttribute, Vec<syn::Attribute>), syn::Error> {
         ir::sanitize_attributes(
             method_item.span(),
             method_item.attrs.clone(),
@@ -199,9 +199,9 @@ impl TryFrom<syn::ImplItemMethod> for Message {
         ensure_callable_invariants(&method_item, CallableKind::Message)?;
         Self::ensure_receiver_is_self_ref(&method_item)?;
         Self::ensure_not_return_self(&method_item)?;
-        let (ink_attrs, other_attrs) = Self::sanitize_attributes(&method_item)?;
-        let is_payable = ink_attrs.is_payable();
-        let selector = ink_attrs.selector();
+        let (pro_attrs, other_attrs) = Self::sanitize_attributes(&method_item)?;
+        let is_payable = pro_attrs.is_payable();
+        let selector = pro_attrs.selector();
         Ok(Self {
             is_payable,
             selector,
@@ -234,7 +234,7 @@ impl Callable for Message {
         match &self.item.vis {
             syn::Visibility::Public(vis_public) => Visibility::Public(vis_public.clone()),
             syn::Visibility::Inherited => Visibility::Inherited,
-            _ => unreachable!("encountered invalid visibility for ink! message"),
+            _ => unreachable!("encountered invalid visibility for pro! message"),
         }
     }
 
@@ -252,12 +252,12 @@ impl Callable for Message {
 }
 
 impl Message {
-    /// Returns a slice of all non-ink! attributes of the ink! message.
+    /// Returns a slice of all non-pro! attributes of the pro! message.
     pub fn attrs(&self) -> &[syn::Attribute] {
         &self.item.attrs
     }
 
-    /// Returns the `self` receiver of the ink! message.
+    /// Returns the `self` receiver of the pro! message.
     pub fn receiver(&self) -> Receiver {
         match self.item.sig.inputs.iter().next() {
             Some(syn::FnArg::Receiver(receiver)) => {
@@ -268,11 +268,11 @@ impl Message {
                     Receiver::Ref
                 }
             }
-            _ => unreachable!("encountered invalid receiver argument for ink! message"),
+            _ => unreachable!("encountered invalid receiver argument for pro! message"),
         }
     }
 
-    /// Returns the return type of the ink! message if any.
+    /// Returns the return type of the pro! message if any.
     pub fn output(&self) -> Option<&syn::Type> {
         match &self.item.sig.output {
             syn::ReturnType::Default => None,
@@ -292,7 +292,7 @@ mod tests {
                 // No output:
                 None,
                 syn::parse_quote! {
-                    #[ink(message)]
+                    #[pro(message)]
                     fn my_message(&self) {}
                 },
             ),
@@ -300,7 +300,7 @@ mod tests {
                 // Single output:
                 Some(syn::parse_quote! { i32 }),
                 syn::parse_quote! {
-                    #[ink(message)]
+                    #[pro(message)]
                     fn my_message(&self) -> i32 {}
                 },
             ),
@@ -308,7 +308,7 @@ mod tests {
                 // Tuple output:
                 Some(syn::parse_quote! { (i32, u64, bool) }),
                 syn::parse_quote! {
-                    #[ink(message)]
+                    #[pro(message)]
                     fn my_message(&self) -> (i32, u64, bool) {}
                 },
             ),
@@ -340,7 +340,7 @@ mod tests {
                 // No inputs:
                 expected_inputs!(),
                 syn::parse_quote! {
-                    #[ink(message)]
+                    #[pro(message)]
                     fn my_message(&self) {}
                 },
             ),
@@ -348,7 +348,7 @@ mod tests {
                 // Single input:
                 expected_inputs!(a: i32),
                 syn::parse_quote! {
-                    #[ink(message)]
+                    #[pro(message)]
                     fn my_message(&self, a: i32) {}
                 },
             ),
@@ -356,7 +356,7 @@ mod tests {
                 // Some inputs:
                 expected_inputs!(a: i32, b: u64, c: [u8; 32]),
                 syn::parse_quote! {
-                    #[ink(message)]
+                    #[pro(message)]
                     fn my_message(&self, a: i32, b: u64, c: [u8; 32]) {}
                 },
             ),
@@ -379,33 +379,33 @@ mod tests {
             (
                 false,
                 syn::parse_quote! {
-                    #[ink(message)]
+                    #[pro(message)]
                     fn my_message(&self) {}
                 },
             ),
-            // Normalized ink! attribute.
+            // Normalized pro! attribute.
             (
                 true,
                 syn::parse_quote! {
-                    #[ink(message, payable)]
+                    #[pro(message, payable)]
                     pub fn my_message(&self) {}
                 },
             ),
-            // Different ink! attributes.
+            // Different pro! attributes.
             (
                 true,
                 syn::parse_quote! {
-                    #[ink(message)]
-                    #[ink(payable)]
+                    #[pro(message)]
+                    #[pro(payable)]
                     pub fn my_message(&self) {}
                 },
             ),
-            // Another ink! attribute, separate and normalized attribute.
+            // Another pro! attribute, separate and normalized attribute.
             (
                 true,
                 syn::parse_quote! {
-                    #[ink(message)]
-                    #[ink(selector = "0xDEADBEEF", payable)]
+                    #[pro(message)]
+                    #[pro(selector = "0xDEADBEEF", payable)]
                     pub fn my_message(&self) {}
                 },
             ),
@@ -424,14 +424,14 @@ mod tests {
             (
                 Receiver::Ref,
                 syn::parse_quote! {
-                    #[ink(message)]
+                    #[pro(message)]
                     fn my_message(&self) {}
                 },
             ),
             (
                 Receiver::RefMut,
                 syn::parse_quote! {
-                    #[ink(message, payable)]
+                    #[pro(message, payable)]
                     fn my_message(&mut self) {}
                 },
             ),
@@ -451,7 +451,7 @@ mod tests {
             (
                 false,
                 syn::parse_quote! {
-                    #[ink(message)]
+                    #[pro(message)]
                     fn my_message(&self) {}
                 },
             ),
@@ -459,7 +459,7 @@ mod tests {
             (
                 true,
                 syn::parse_quote! {
-                    #[ink(message)]
+                    #[pro(message)]
                     pub fn my_message(&self) {}
                 },
             ),
@@ -467,7 +467,7 @@ mod tests {
             (
                 false,
                 syn::parse_quote! {
-                    #[ink(message)]
+                    #[pro(message)]
                     fn my_message(&mut self) {}
                 },
             ),
@@ -475,7 +475,7 @@ mod tests {
             (
                 true,
                 syn::parse_quote! {
-                    #[ink(message)]
+                    #[pro(message)]
                     pub fn my_message(&mut self) {}
                 },
             ),
@@ -494,42 +494,42 @@ mod tests {
         let item_methods: Vec<syn::ImplItemMethod> = vec![
             // &self
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 fn my_message(&self) {}
             },
             // &self + pub
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 pub fn my_message(&self) {}
             },
             // &mut self
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 fn my_message(&mut self) {}
             },
             // &mut self + pub
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 pub fn my_message(&mut self) {}
             },
             // &self + payable
             syn::parse_quote! {
-                #[ink(message, payable)]
+                #[pro(message, payable)]
                 fn my_message(&self) {}
             },
             // &mut self + payable
             syn::parse_quote! {
-                #[ink(message, payable)]
+                #[pro(message, payable)]
                 fn my_message(&mut self) {}
             },
             // &self + many inputs + output works
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 fn my_message(&self, input1: i32, input2: i64, input3: u32, input4: u64) -> bool {}
             },
             // &mut self + many inputs + output works
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 fn my_message(&mut self, input1: i32, input2: i64, input3: u32, input4: u64) -> bool {}
             },
         ];
@@ -550,24 +550,24 @@ mod tests {
     fn try_from_generics_fails() {
         let item_methods: Vec<syn::ImplItemMethod> = vec![
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 fn my_message<T>(&self) {}
             },
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 pub fn my_message<T>(&self) {}
             },
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 fn my_message<T>(&mut self) {}
             },
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 pub fn my_message<T>(&mut self) {}
             },
         ];
         for item_method in item_methods {
-            assert_try_from_fails(item_method, "ink! messages must not be generic")
+            assert_try_from_fails(item_method, "pro! messages must not be generic")
         }
     }
 
@@ -575,30 +575,30 @@ mod tests {
     fn try_from_receiver_fails() {
         let item_methods: Vec<syn::ImplItemMethod> = vec![
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 fn my_message() {}
             },
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 fn my_message(self) {}
             },
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 pub fn my_message(mut self) {}
             },
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 fn my_message(this: &Self) {}
             },
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 pub fn my_message(this: &mut Self) {}
             },
         ];
         for item_method in item_methods {
             assert_try_from_fails(
                 item_method,
-                "ink! messages must have `&self` or `&mut self` receiver",
+                "pro! messages must have `&self` or `&mut self` receiver",
             )
         }
     }
@@ -608,17 +608,17 @@ mod tests {
         let item_methods: Vec<syn::ImplItemMethod> = vec![
             // &self
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 const fn my_message(&self) {}
             },
             // &mut self
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 const fn my_message(&mut self) {}
             },
         ];
         for item_method in item_methods {
-            assert_try_from_fails(item_method, "ink! messages must not be const")
+            assert_try_from_fails(item_method, "pro! messages must not be const")
         }
     }
 
@@ -627,17 +627,17 @@ mod tests {
         let item_methods: Vec<syn::ImplItemMethod> = vec![
             // &self
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 async fn my_message(&self) {}
             },
             // &mut self
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 async fn my_message(&mut self) {}
             },
         ];
         for item_method in item_methods {
-            assert_try_from_fails(item_method, "ink! messages must not be async")
+            assert_try_from_fails(item_method, "pro! messages must not be async")
         }
     }
 
@@ -646,17 +646,17 @@ mod tests {
         let item_methods: Vec<syn::ImplItemMethod> = vec![
             // &self
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 unsafe fn my_message(&self) {}
             },
             // &mut self
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 unsafe fn my_message(&mut self) {}
             },
         ];
         for item_method in item_methods {
-            assert_try_from_fails(item_method, "ink! messages must not be unsafe")
+            assert_try_from_fails(item_method, "pro! messages must not be unsafe")
         }
     }
 
@@ -665,17 +665,17 @@ mod tests {
         let item_methods: Vec<syn::ImplItemMethod> = vec![
             // &self
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 extern "C" fn my_message(&self) {}
             },
             // &mut self
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 extern "C" fn my_message(&mut self) {}
             },
         ];
         for item_method in item_methods {
-            assert_try_from_fails(item_method, "ink! messages must have explicit ABI")
+            assert_try_from_fails(item_method, "pro! messages must have explicit ABI")
         }
     }
 
@@ -684,17 +684,17 @@ mod tests {
         let item_methods: Vec<syn::ImplItemMethod> = vec![
             // &self
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 fn my_message(&self, ...) {}
             },
             // &mut self
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 fn my_message(&mut self, ...) {}
             },
         ];
         for item_method in item_methods {
-            assert_try_from_fails(item_method, "ink! messages must not be variadic")
+            assert_try_from_fails(item_method, "pro! messages must not be variadic")
         }
     }
 
@@ -703,29 +703,29 @@ mod tests {
         let item_methods: Vec<syn::ImplItemMethod> = vec![
             // &self + crate visibility
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 crate fn my_message(&self) {}
             },
             // &mut self + crate visibility
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 crate fn my_message(&mut self) {}
             },
             // &self + pub restricted visibility
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 pub(in my::path) fn my_message(&self) {}
             },
             // &mut self + pub restricted visibility
             syn::parse_quote! {
-                #[ink(message)]
+                #[pro(message)]
                 pub(in my::path) fn my_message(&mut self) {}
             },
         ];
         for item_method in item_methods {
             assert_try_from_fails(
                 item_method,
-                "ink! messages must have public or inherited visibility",
+                "pro! messages must have public or inherited visibility",
             )
         }
     }
@@ -735,25 +735,25 @@ mod tests {
         let item_methods: Vec<syn::ImplItemMethod> = vec![
             // storage
             syn::parse_quote! {
-                #[ink(message, storage)]
+                #[pro(message, storage)]
                 fn my_message(&self) {}
             },
             // namespace
             syn::parse_quote! {
-                #[ink(message, namespace = "my_namespace")]
+                #[pro(message, namespace = "my_namespace")]
                 fn my_message(&self) {}
             },
             // event + multiple attributes
             syn::parse_quote! {
-                #[ink(message)]
-                #[ink(event)]
+                #[pro(message)]
+                #[pro(event)]
                 fn my_message(&self) {}
             },
         ];
         for item_method in item_methods {
             assert_try_from_fails(
                 item_method,
-                "encountered conflicting ink! attribute argument",
+                "encountered conflicting pro! attribute argument",
             )
         }
     }

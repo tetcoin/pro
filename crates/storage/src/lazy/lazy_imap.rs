@@ -30,11 +30,11 @@ use core::{
     fmt::Debug,
     ptr::NonNull,
 };
-use ink_prelude::{
+use pro_prelude::{
     boxed::Box,
     collections::BTreeMap,
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 /// The index type used in the lazy storage chunk.
 pub type Index = u32;
@@ -192,7 +192,7 @@ impl<V> LazyIndexMap<V> {
     /// - If the lazy chunk is in an invalid state that forbids interaction.
     /// - If the decoding of the old element at the given index failed.
     pub fn put(&mut self, index: Index, new_value: Option<V>) {
-        use ink_prelude::collections::btree_map::Entry as BTreeMapEntry;
+        use pro_prelude::collections::btree_map::Entry as BTreeMapEntry;
         match self.entries_mut().entry(index) {
             BTreeMapEntry::Occupied(mut occupied) => {
                 // We can re-use the already existing boxed `Entry` and simply
@@ -210,13 +210,13 @@ impl<V> LazyIndexMap<V> {
 #[cfg(feature = "std")]
 const _: () = {
     use crate::traits::StorageLayout;
-    use ink_metadata::layout::{
+    use pro_metadata::layout::{
         ArrayLayout,
         CellLayout,
         Layout,
         LayoutKey,
     };
-    use scale_info::TypeInfo;
+    use tetsy_scale_info::TypeInfo;
 
     impl<T> StorageLayout for LazyIndexMap<T>
     where
@@ -288,7 +288,7 @@ where
         } else {
             // The type does not require deep clean-up so we can simply clean-up
             // its associated storage cell and be done without having to load it first.
-            ink_env::clear_contract_storage(&root_key);
+            pro_env::clear_contract_storage(&root_key);
         }
     }
 }
@@ -334,7 +334,7 @@ where
         //         the caller site to underline that guarantees are given by the
         //         caller.
         let cached_entries = &mut *self.cached_entries.get_ptr().as_ptr();
-        use ink_prelude::collections::btree_map::Entry as BTreeMapEntry;
+        use pro_prelude::collections::btree_map::Entry as BTreeMapEntry;
         match cached_entries.entry(index) {
             BTreeMapEntry::Occupied(occupied) => {
                 NonNull::from(&mut **occupied.into_mut())
@@ -460,7 +460,7 @@ mod tests {
         KeyPtr,
         SpreadLayout,
     };
-    use ink_primitives::Key;
+    use pro_primitives::Key;
 
     /// Asserts that the cached entries of the given `imap` is equal to the `expected` slice.
     fn assert_cached_entries(
@@ -698,8 +698,8 @@ mod tests {
     }
 
     #[test]
-    fn spread_layout_works() -> ink_env::Result<()> {
-        ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+    fn spread_layout_works() -> pro_env::Result<()> {
+        pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
             let mut imap = <LazyIndexMap<u8>>::new();
             let nothing_changed = &[
                 (1, StorageEntry::new(Some(b'A'), EntryState::Mutated)),

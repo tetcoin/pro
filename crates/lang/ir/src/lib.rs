@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! The ink! intermediate representation (IR) and abstractions.
+//! The pro! intermediate representation (IR) and abstractions.
 //!
-//! This module defines everything the ink! procedural macro needs in order to
-//! parse, analyze and generate code for ink! smart contracts.
+//! This module defines everything the pro! procedural macro needs in order to
+//! parse, analyze and generate code for pro! smart contracts.
 //!
-//! The entry point for every ink! smart contract is the [`Contract`](`crate::ir::Contract`)
+//! The entry point for every pro! smart contract is the [`Contract`](`crate::ir::Contract`)
 //! with its [`Config`](`crate::ir::Config`) provided in the initial invocation at
-//! `#[ink::contract(... configuration ...)]`.
+//! `#[pro::contract(... configuration ...)]`.
 //!
-//! The ink! IR tries to stay close to the original Rust syntactic structure.
-//! All ink! definitions of an ink! smart contract are always defined within
+//! The pro! IR tries to stay close to the original Rust syntactic structure.
+//! All pro! definitions of an pro! smart contract are always defined within
 //! a so-called Rust inline modlue (`mod my_module { ... items ... }`).
-//! Therefore all ink! definition are found and accessed using the
+//! Therefore all pro! definition are found and accessed using the
 //! [`ItemMod`](`crate::ir::ItemMod`) data structure.
 
 #[macro_use]
@@ -45,19 +45,19 @@ pub use self::ir::{
     Event,
     ExtensionId,
     ImplItem,
-    InkItem,
-    InkTest,
-    InkTrait,
-    InkTraitConstructor,
-    InkTraitItem,
-    InkTraitMessage,
+    ProItem,
+    ProTest,
+    ProTrait,
+    ProTraitConstructor,
+    ProTraitItem,
+    ProTraitMessage,
     InputsIter,
     Item,
     ItemImpl,
     ItemMod,
     IterConstructors,
     IterEvents,
-    IterInkTraitItems,
+    IterProTraitItems,
     IterItemImpls,
     IterMessages,
     Message,

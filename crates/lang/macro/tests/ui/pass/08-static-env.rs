@@ -1,18 +1,18 @@
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract]
+#[pro::contract]
 mod static_env {
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct UsesStaticEnv {}
 
     impl UsesStaticEnv {
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn new() -> Self {
             assert!(Self::env().balance() > 0);
             Self {}
         }
 
-        #[ink(message)]
+        #[pro(message)]
         pub fn gas_left(&mut self) -> Balance {
             Self::env().gas_left()
         }

@@ -13,12 +13,12 @@
 // limitations under the License.
 
 /// Implemented by contracts in order to override `env().emit_event(..)`
-/// syntax for emitting of ink! contract events.
+/// syntax for emitting of pro! contract events.
 ///
 /// # Dev Note
 ///
 /// Normally we'd try to define traits like these in the compagnion
-/// `ink_lang` crate, however, due to Rust's orphan rules we must
+/// `pro_lang` crate, however, due to Rust's orphan rules we must
 /// define this trait here.
 pub trait EmitEvent<C>
 where

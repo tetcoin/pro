@@ -15,31 +15,31 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub use self::accumulator::Accumulator;
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract]
+#[pro::contract]
 pub mod accumulator {
     /// Holds a simple i32 value that can be incremented and decremented.
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct Accumulator {
         value: i32,
     }
 
     impl Accumulator {
         /// Initializes the value to the initial value.
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn new(init_value: i32) -> Self {
             Self { value: init_value }
         }
 
         /// Mutates the internal value.
-        #[ink(message)]
+        #[pro(message)]
         pub fn inc(&mut self, by: i32) {
             self.value += by;
         }
 
         /// Returns the current state.
-        #[ink(message)]
+        #[pro(message)]
         pub fn get(&self) -> i32 {
             self.value
         }

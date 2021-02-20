@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Implementation of ink! storage traits.
+//! Implementation of pro! storage traits.
 
 use super::{
     HashMap as StorageHashMap,
@@ -29,11 +29,11 @@ use crate::{
         SpreadLayout,
     },
 };
-use ink_env::hash::{
+use pro_env::hash::{
     CryptoHash,
     HashOutput,
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 #[cfg(feature = "std")]
 const _: () = {
@@ -44,12 +44,12 @@ const _: () = {
             StorageLayout,
         },
     };
-    use ink_metadata::layout::{
+    use pro_metadata::layout::{
         FieldLayout,
         Layout,
         StructLayout,
     };
-    use scale_info::TypeInfo;
+    use tetsy_scale_info::TypeInfo;
 
     impl<K, V, H> StorageLayout for StorageHashMap<K, V, H>
     where

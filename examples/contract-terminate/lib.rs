@@ -18,23 +18,23 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::new_without_default)]
 
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract]
+#[pro::contract]
 pub mod just_terminates {
     /// No storage is needed for this simple contract.
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct JustTerminate {}
 
     impl JustTerminate {
         /// Creates a new instance of this contract.
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn new() -> Self {
             Self {}
         }
 
         /// Terminates with the caller as beneficiary.
-        #[ink(message)]
+        #[pro(message)]
         pub fn terminate_me(&mut self) {
             self.env().terminate_contract(self.env().caller());
         }
@@ -44,18 +44,18 @@ pub mod just_terminates {
     mod tests {
         use super::*;
 
-        use ink_env::{
+        use pro_env::{
             call,
             test,
         };
-        use ink_lang as ink;
+        use pro_lang as pro;
 
-        #[ink::test]
+        #[pro::test]
         fn terminating_works() {
             // given
             let accounts = default_accounts();
-            let contract_id = ink_env::test::get_current_contract_account_id::<
-                ink_env::DefaultEnvironment,
+            let contract_id = pro_env::test::get_current_contract_account_id::<
+                pro_env::DefaultEnvironment,
             >()
             .expect("Cannot get contract id");
             set_sender(accounts.alice);
@@ -66,7 +66,7 @@ pub mod just_terminates {
             let should_terminate = move || contract.terminate_me();
 
             // then
-            ink_env::test::assert_contract_termination::<ink_env::DefaultEnvironment, _>(
+            pro_env::test::assert_contract_termination::<pro_env::DefaultEnvironment, _>(
                 should_terminate,
                 accounts.alice,
                 100,
@@ -74,13 +74,13 @@ pub mod just_terminates {
         }
 
         fn default_accounts(
-        ) -> ink_env::test::DefaultAccounts<ink_env::DefaultEnvironment> {
-            ink_env::test::default_accounts::<ink_env::DefaultEnvironment>()
+        ) -> pro_env::test::DefaultAccounts<pro_env::DefaultEnvironment> {
+            pro_env::test::default_accounts::<pro_env::DefaultEnvironment>()
                 .expect("Off-chain environment should have been initialized already")
         }
 
         fn set_sender(sender: AccountId) {
-            let callee = ink_env::account_id::<ink_env::DefaultEnvironment>()
+            let callee = pro_env::account_id::<pro_env::DefaultEnvironment>()
                 .unwrap_or([0x0; 32].into());
             test::push_execution_context::<Environment>(
                 sender,
@@ -92,7 +92,7 @@ pub mod just_terminates {
         }
 
         fn set_balance(account_id: AccountId, balance: Balance) {
-            ink_env::test::set_account_balance::<ink_env::DefaultEnvironment>(
+            pro_env::test::set_account_balance::<pro_env::DefaultEnvironment>(
                 account_id, balance,
             )
             .expect("Cannot set account balance");

@@ -1,15 +1,15 @@
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract]
+#[pro::contract]
 mod missing_storage_struct {
-    // We are missing the #[ink(storage)] attribute here
+    // We are missing the #[pro(storage)] attribute here
     pub struct MissingStorageStruct {}
 
     impl MissingStorageStruct {
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn constructor() -> Self {}
 
-        #[ink(message)]
+        #[pro(message)]
         pub fn message(&self) {}
     }
 }

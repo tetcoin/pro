@@ -14,35 +14,35 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract]
+#[pro::contract]
 mod my_contract {
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct MyContract {}
 
     /// Exemplary event
-    #[ink(event)]
+    #[pro(event)]
     pub struct MyEvent {
-        #[ink(topic)]
+        #[pro(topic)]
         v0: Option<AccountId>,
-        #[ink(topic)]
+        #[pro(topic)]
         v1: Balance,
-        #[ink(topic)]
+        #[pro(topic)]
         v2: bool,
-        #[ink(topic)]
+        #[pro(topic)]
         v3: bool,
     }
 
     impl MyContract {
         /// Creates a new `MyContract` instance.
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn new() -> Self {
             MyContract {}
         }
 
         /// Emits a `MyEvent`.
-        #[ink(message)]
+        #[pro(message)]
         pub fn emit_my_event(&self) {
             Self::env().emit_event(MyEvent {
                 v0: None,
@@ -56,10 +56,10 @@ mod my_contract {
     #[cfg(test)]
     mod tests {
         use super::*;
-        use ink_env::test::EmittedEvent;
-        use ink_lang as ink;
+        use pro_env::test::EmittedEvent;
+        use pro_lang as pro;
 
-        #[ink::test]
+        #[pro::test]
         fn event_must_have_unique_topics() {
             // given
             let my_contract = MyContract::new();
@@ -70,7 +70,7 @@ mod my_contract {
             // then
             // all topics must be unique
             let emitted_events =
-                ink_env::test::recorded_events().collect::<Vec<EmittedEvent>>();
+                pro_env::test::recorded_events().collect::<Vec<EmittedEvent>>();
             let mut encoded_topics: std::vec::Vec<&[u8]> = emitted_events[0]
                 .topics
                 .iter()

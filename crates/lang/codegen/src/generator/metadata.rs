@@ -36,17 +36,17 @@ impl GenerateCode for Metadata<'_> {
 
         quote! {
             #[cfg(feature = "std")]
-            #[cfg(not(feature = "ink-as-dependency"))]
+            #[cfg(not(feature = "pro-as-dependency"))]
             const _: () = {
                 #[no_mangle]
-                pub fn __ink_generate_metadata() -> ::ink_metadata::InkProject  {
-                    let contract: ::ink_metadata::ContractSpec = {
+                pub fn __pro_generate_metadata() -> ::pro_metadata::ProProject  {
+                    let contract: ::pro_metadata::ContractSpec = {
                         #contract
                     };
-                    let layout: ::ink_metadata::layout::Layout = {
+                    let layout: ::pro_metadata::layout::Layout = {
                         #layout
                     };
-                    ::ink_metadata::InkProject::new(layout, contract)
+                    ::pro_metadata::ProProject::new(layout, contract)
                 }
             };
         }
@@ -57,8 +57,8 @@ impl Metadata<'_> {
     fn generate_layout(&self) -> TokenStream2 {
         let contract_ident = self.contract.module().storage().ident();
         quote! {
-            <#contract_ident as ::ink_storage::traits::StorageLayout>::layout(
-                &mut ::ink_primitives::KeyPtr::from(::ink_primitives::Key::from([0x00; 32]))
+            <#contract_ident as ::pro_storage::traits::StorageLayout>::layout(
+                &mut ::pro_primitives::KeyPtr::from(::pro_primitives::Key::from([0x00; 32]))
             )
         }
     }
@@ -70,7 +70,7 @@ impl Metadata<'_> {
         let docs = self.generate_docs();
 
         quote! {
-            ::ink_metadata::ContractSpec::new()
+            ::pro_metadata::ContractSpec::new()
                 .constructors(vec![
                     #(#constructors ,)*
                 ])
@@ -108,7 +108,7 @@ impl Metadata<'_> {
             })
     }
 
-    /// Generates ink! metadata for all contract constructors.
+    /// Generates pro! metadata for all contract constructors.
     fn generate_constructors(&self) -> impl Iterator<Item = TokenStream2> + '_ {
         self.contract
             .module()
@@ -144,7 +144,7 @@ impl Metadata<'_> {
                     }
                 };
                 quote_spanned!(span =>
-                    ::ink_metadata::ConstructorSpec::#constr
+                    ::pro_metadata::ConstructorSpec::#constr
                         .selector([#(#selector_bytes),*])
                         .args(vec![
                             #(#args ,)*
@@ -157,25 +157,25 @@ impl Metadata<'_> {
             })
     }
 
-    /// Generates the ink! metadata for the given parameter and parameter type.
+    /// Generates the pro! metadata for the given parameter and parameter type.
     fn generate_message_param(pat_type: &syn::PatType) -> TokenStream2 {
         let ident = match &*pat_type.pat {
             syn::Pat::Ident(ident) => &ident.ident,
-            _ => unreachable!("encountered unexpected non identifier in ink! parameter"),
+            _ => unreachable!("encountered unexpected non identifier in pro! parameter"),
         };
         let ident_lit = ident.to_string();
         let type_spec = Self::generate_type_spec(&pat_type.ty);
         quote! {
-            ::ink_metadata::MessageParamSpec::new(#ident_lit)
+            ::pro_metadata::MessageParamSpec::new(#ident_lit)
                 .of_type(#type_spec)
                 .done()
         }
     }
 
-    /// Generates the ink! metadata for the given type.
+    /// Generates the pro! metadata for the given type.
     fn generate_type_spec(ty: &syn::Type) -> TokenStream2 {
         fn without_display_name(ty: &syn::Type) -> TokenStream2 {
-            quote! { ::ink_metadata::TypeSpec::new::<#ty>() }
+            quote! { ::pro_metadata::TypeSpec::new::<#ty>() }
         }
         if let syn::Type::Path(type_path) = ty {
             if type_path.qself.is_some() {
@@ -191,7 +191,7 @@ impl Metadata<'_> {
                 .map(|seg| seg.ident.to_string())
                 .collect::<Vec<_>>();
             quote! {
-                ::ink_metadata::TypeSpec::with_name_segs::<#ty, _>(
+                ::pro_metadata::TypeSpec::with_name_segs::<#ty, _>(
                     vec![#(#segs),*].into_iter().map(AsRef::as_ref)
                 )
             }
@@ -238,7 +238,7 @@ impl Metadata<'_> {
                     }
                 };
                 quote_spanned!(span =>
-                    ::ink_metadata::MessageSpec::#constr
+                    ::pro_metadata::MessageSpec::#constr
                         .selector([#(#selector_bytes),*])
                         .args(vec![
                             #(#args ,)*
@@ -254,24 +254,24 @@ impl Metadata<'_> {
             })
     }
 
-    /// Generates ink! metadata for the given return type.
+    /// Generates pro! metadata for the given return type.
     fn generate_return_type(ret_ty: Option<&syn::Type>) -> TokenStream2 {
         match ret_ty {
             None => {
                 quote! {
-                    ::ink_metadata::ReturnTypeSpec::new(None)
+                    ::pro_metadata::ReturnTypeSpec::new(None)
                 }
             }
             Some(ty) => {
                 let type_spec = Self::generate_type_spec(ty);
                 quote! {
-                    ::ink_metadata::ReturnTypeSpec::new(#type_spec)
+                    ::pro_metadata::ReturnTypeSpec::new(#type_spec)
                 }
             }
         }
     }
 
-    /// Generates ink! metadata for all user provided ink! event definitions.
+    /// Generates pro! metadata for all user provided pro! event definitions.
     fn generate_events(&self) -> impl Iterator<Item = TokenStream2> + '_ {
         self.contract.module().events().map(|event| {
             let span = event.span();
@@ -280,7 +280,7 @@ impl Metadata<'_> {
             let docs = Self::extract_doc_comments(event.attrs());
             let args = Self::generate_event_args(event);
             quote_spanned!(span =>
-                ::ink_metadata::EventSpec::new(#ident_lit)
+                ::pro_metadata::EventSpec::new(#ident_lit)
                     .args(vec![
                         #( #args, )*
                     ])
@@ -292,7 +292,7 @@ impl Metadata<'_> {
         })
     }
 
-    /// Generate ink! metadata for a single argument of an ink! event definition.
+    /// Generate pro! metadata for a single argument of an pro! event definition.
     fn generate_event_args(event: &ir::Event) -> impl Iterator<Item = TokenStream2> + '_ {
         event.fields().map(|event_field| {
             let span = event_field.span();
@@ -303,7 +303,7 @@ impl Metadata<'_> {
             let docs = Self::extract_doc_comments(&attrs);
             let ty = Self::generate_type_spec(event_field.ty());
             quote_spanned!(span =>
-                ::ink_metadata::EventParamSpec::new(#ident_lit)
+                ::pro_metadata::EventParamSpec::new(#ident_lit)
                     .of_type(#ty)
                     .indexed(#is_topic)
                     .docs(vec![

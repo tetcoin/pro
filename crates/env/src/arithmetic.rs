@@ -74,7 +74,7 @@ pub trait BaseArithmetic:
     + TryInto<u128>
     + TryInto<usize>
 // Further trait bounds from the original BaseArithmetic trait
-// that we could use to extend ink!'s BaseArithmetic trait.
+// that we could use to extend pro!'s BaseArithmetic trait.
 //
 // UniqueSaturatedInto<u8> +
 // UniqueSaturatedInto<u16> +

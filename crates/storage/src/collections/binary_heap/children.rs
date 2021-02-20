@@ -22,10 +22,10 @@ use crate::traits::{
     PackedLayout,
     SpreadLayout,
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 #[cfg(feature = "std")]
-use scale_info::TypeInfo;
+use tetsy_scale_info::TypeInfo;
 
 /// Each `Children` object may contain up to two elements. It is always
 /// stored in one single storage cell. This reduces storage access operations
@@ -121,7 +121,7 @@ where
 #[cfg(feature = "std")]
 const _: () = {
     use crate::traits::StorageLayout;
-    use ink_metadata::layout::{
+    use pro_metadata::layout::{
         CellLayout,
         Layout,
         LayoutKey,

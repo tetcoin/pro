@@ -18,17 +18,17 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::new_without_default)]
 
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract]
+#[pro::contract]
 pub mod give_me {
     /// No storage is needed for this simple contract.
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct GiveMe {}
 
     /// The error types.
     #[derive(Debug, PartialEq, Eq, scale::Encode)]
-    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+    #[cfg_attr(feature = "std", derive(tetsy_scale_info::TypeInfo))]
     pub enum Error {
         /// Returned if the transfer failed.
         TransferFailed,
@@ -43,7 +43,7 @@ pub mod give_me {
 
     impl GiveMe {
         /// Creates a new instance of this contract.
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn new() -> Self {
             Self {}
         }
@@ -59,7 +59,7 @@ pub mod give_me {
         ///   threshold.
         /// - Returns `Error::TransferFailed` in case the transfer failed for another
         ///   reason.
-        #[ink(message)]
+        #[pro(message)]
         pub fn give_me(&mut self, value: Balance) -> Result<(), Error> {
             if value > self.env().balance() {
                 return Err(Error::InsufficientFunds)
@@ -68,7 +68,7 @@ pub mod give_me {
                 .transfer(self.env().caller(), value)
                 .map_err(|err| {
                     match err {
-                        ink_env::Error::BelowSubsistenceThreshold => {
+                        pro_env::Error::BelowSubsistenceThreshold => {
                             Error::BelowSubsistenceThreshold
                         }
                         _ => Error::TransferFailed,
@@ -83,7 +83,7 @@ pub mod give_me {
         ///
         /// The method needs to be annotated with `payable`; only then it is
         /// allowed to receive value as part of the call.
-        #[ink(message, payable, selector = "0xCAFEBABE")]
+        #[pro(message, payable, selector = "0xCAFEBABE")]
         pub fn was_it_ten(&self) -> bool {
             self.env().transferred_balance() == 10
         }
@@ -93,13 +93,13 @@ pub mod give_me {
     mod tests {
         use super::*;
 
-        use ink_env::{
+        use pro_env::{
             call,
             test,
         };
-        use ink_lang as ink;
+        use pro_lang as pro;
 
-        #[ink::test]
+        #[pro::test]
         fn transfer_works() {
             // given
             let contract_balance = 100;
@@ -115,7 +115,7 @@ pub mod give_me {
             assert_eq!(get_balance(accounts.eve), 80);
         }
 
-        #[ink::test]
+        #[pro::test]
         fn transfer_fails_insufficient_funds() {
             // given
             let contract_balance = 100;
@@ -130,7 +130,7 @@ pub mod give_me {
             assert_eq!(ret, Err(Error::InsufficientFunds));
         }
 
-        #[ink::test]
+        #[pro::test]
         fn test_transferred_value() {
             // given
             let accounts = default_accounts();
@@ -138,7 +138,7 @@ pub mod give_me {
 
             // when
             set_sender(accounts.eve);
-            let mut data = ink_env::test::CallData::new(ink_env::call::Selector::new([
+            let mut data = pro_env::test::CallData::new(pro_env::call::Selector::new([
                 0xCA, 0xFE, 0xBA, 0xBE,
             ]));
             data.push_arg(&accounts.eve);
@@ -147,7 +147,7 @@ pub mod give_me {
             // Push the new execution context which sets Eve as caller and
             // the `mock_transferred_balance` as the value which the contract
             // will see as transferred to it.
-            ink_env::test::push_execution_context::<ink_env::DefaultEnvironment>(
+            pro_env::test::push_execution_context::<pro_env::DefaultEnvironment>(
                 accounts.eve,
                 contract_id(),
                 1000000,
@@ -170,13 +170,13 @@ pub mod give_me {
         }
 
         fn contract_id() -> AccountId {
-            ink_env::test::get_current_contract_account_id::<ink_env::DefaultEnvironment>(
+            pro_env::test::get_current_contract_account_id::<pro_env::DefaultEnvironment>(
             )
             .expect("Cannot get contract id")
         }
 
         fn set_sender(sender: AccountId) {
-            let callee = ink_env::account_id::<ink_env::DefaultEnvironment>()
+            let callee = pro_env::account_id::<pro_env::DefaultEnvironment>()
                 .unwrap_or([0x0; 32].into());
             test::push_execution_context::<Environment>(
                 sender,
@@ -188,20 +188,20 @@ pub mod give_me {
         }
 
         fn default_accounts(
-        ) -> ink_env::test::DefaultAccounts<ink_env::DefaultEnvironment> {
-            ink_env::test::default_accounts::<ink_env::DefaultEnvironment>()
+        ) -> pro_env::test::DefaultAccounts<pro_env::DefaultEnvironment> {
+            pro_env::test::default_accounts::<pro_env::DefaultEnvironment>()
                 .expect("Off-chain environment should have been initialized already")
         }
 
         fn set_balance(account_id: AccountId, balance: Balance) {
-            ink_env::test::set_account_balance::<ink_env::DefaultEnvironment>(
+            pro_env::test::set_account_balance::<pro_env::DefaultEnvironment>(
                 account_id, balance,
             )
             .expect("Cannot set account balance");
         }
 
         fn get_balance(account_id: AccountId) -> Balance {
-            ink_env::test::get_account_balance::<ink_env::DefaultEnvironment>(account_id)
+            pro_env::test::get_account_balance::<pro_env::DefaultEnvironment>(account_id)
                 .expect("Cannot set account balance")
         }
     }

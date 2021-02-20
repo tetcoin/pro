@@ -1,29 +1,29 @@
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract(compile_as_dependency = true)]
+#[pro::contract(compile_as_dependency = true)]
 mod flipper {
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct Flipper {
         value: bool,
     }
 
     impl Flipper {
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn new(init_value: bool) -> Self {
             Self { value: init_value }
         }
 
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn default() -> Self {
             Self::new(false)
         }
 
-        #[ink(message)]
+        #[pro(message)]
         pub fn flip(&mut self) {
             self.value = !self.value;
         }
 
-        #[ink(message)]
+        #[pro(message)]
         pub fn get(&self) -> bool {
             self.value
         }

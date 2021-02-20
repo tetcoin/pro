@@ -14,47 +14,47 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract]
+#[pro::contract]
 mod dns {
-    #[cfg(not(feature = "ink-as-dependency"))]
-    use ink_storage::{
+    #[cfg(not(feature = "pro-as-dependency"))]
+    use pro_storage::{
         collections::hashmap::Entry,
         collections::HashMap as StorageHashMap,
         lazy::Lazy,
     };
 
     /// Emitted whenever a new name is being registered.
-    #[ink(event)]
+    #[pro(event)]
     pub struct Register {
-        #[ink(topic)]
+        #[pro(topic)]
         name: Hash,
-        #[ink(topic)]
+        #[pro(topic)]
         from: AccountId,
     }
 
     /// Emitted whenever an address changes.
-    #[ink(event)]
+    #[pro(event)]
     pub struct SetAddress {
-        #[ink(topic)]
+        #[pro(topic)]
         name: Hash,
         from: AccountId,
-        #[ink(topic)]
+        #[pro(topic)]
         old_address: Option<AccountId>,
-        #[ink(topic)]
+        #[pro(topic)]
         new_address: AccountId,
     }
 
     /// Emitted whenver a name is being transferred.
-    #[ink(event)]
+    #[pro(event)]
     pub struct Transfer {
-        #[ink(topic)]
+        #[pro(topic)]
         name: Hash,
         from: AccountId,
-        #[ink(topic)]
+        #[pro(topic)]
         old_owner: Option<AccountId>,
-        #[ink(topic)]
+        #[pro(topic)]
         new_owner: AccountId,
     }
 
@@ -63,8 +63,8 @@ mod dns {
     ///
     /// # Note
     ///
-    /// This is a port from the blog post's ink! 1.0 based version of the contract
-    /// to ink! 2.0.
+    /// This is a port from the blog post's pro! 1.0 based version of the contract
+    /// to pro! 2.0.
     ///
     /// # Description
     ///
@@ -73,7 +73,7 @@ mod dns {
     /// and easily memorable names such as “polka.dot” which can be used
     /// to facilitate transfers, voting and dapp-related operations instead
     /// of resorting to long IP addresses that are hard to remember.
-    #[ink(storage)]
+    #[pro(storage)]
     #[derive(Default)]
     pub struct DomainNameService {
         /// A hashmap to store all name to addresses mapping.
@@ -86,7 +86,7 @@ mod dns {
 
     /// Errors that can occur upon calling this contract.
     #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
-    #[cfg_attr(feature = "std", derive(::scale_info::TypeInfo))]
+    #[cfg_attr(feature = "std", derive(::tetsy_scale_info::TypeInfo))]
     pub enum Error {
         /// Returned if the name already exists upon registration.
         NameAlreadyExists,
@@ -99,13 +99,13 @@ mod dns {
 
     impl DomainNameService {
         /// Creates a new domain name service contract.
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn new() -> Self {
             Default::default()
         }
 
         /// Register specific name with caller as owner.
-        #[ink(message)]
+        #[pro(message)]
         pub fn register(&mut self, name: Hash) -> Result<()> {
             let caller = self.env().caller();
             let entry = self.name_to_owner.entry(name);
@@ -120,7 +120,7 @@ mod dns {
         }
 
         /// Set address for specific name.
-        #[ink(message)]
+        #[pro(message)]
         pub fn set_address(&mut self, name: Hash, new_address: AccountId) -> Result<()> {
             let caller = self.env().caller();
             let owner = self.get_owner_or_default(name);
@@ -138,7 +138,7 @@ mod dns {
         }
 
         /// Transfer owner to another address.
-        #[ink(message)]
+        #[pro(message)]
         pub fn transfer(&mut self, name: Hash, to: AccountId) -> Result<()> {
             let caller = self.env().caller();
             let owner = self.get_owner_or_default(name);
@@ -156,7 +156,7 @@ mod dns {
         }
 
         /// Get address for specific name.
-        #[ink(message)]
+        #[pro(message)]
         pub fn get_address(&self, name: Hash) -> AccountId {
             self.get_address_or_default(name)
         }
@@ -181,29 +181,29 @@ mod dns {
     #[cfg(test)]
     mod tests {
         use super::*;
-        use ink_lang as ink;
+        use pro_lang as pro;
 
         const DEFAULT_CALLEE_HASH: [u8; 32] = [0x07; 32];
         const DEFAULT_ENDOWMENT: Balance = 1_000_000;
         const DEFAULT_GAS_LIMIT: Balance = 1_000_000;
 
         fn default_accounts(
-        ) -> ink_env::test::DefaultAccounts<ink_env::DefaultEnvironment> {
-            ink_env::test::default_accounts::<ink_env::DefaultEnvironment>()
+        ) -> pro_env::test::DefaultAccounts<pro_env::DefaultEnvironment> {
+            pro_env::test::default_accounts::<pro_env::DefaultEnvironment>()
                 .expect("off-chain environment should have been initialized already")
         }
 
         fn set_next_caller(caller: AccountId) {
-            ink_env::test::push_execution_context::<ink_env::DefaultEnvironment>(
+            pro_env::test::push_execution_context::<pro_env::DefaultEnvironment>(
                 caller,
                 AccountId::from(DEFAULT_CALLEE_HASH),
                 DEFAULT_ENDOWMENT,
                 DEFAULT_GAS_LIMIT,
-                ink_env::test::CallData::new(ink_env::call::Selector::new([0x00; 4])),
+                pro_env::test::CallData::new(pro_env::call::Selector::new([0x00; 4])),
             )
         }
 
-        #[ink::test]
+        #[pro::test]
         fn register_works() {
             let default_accounts = default_accounts();
             let name = Hash::from([0x99; 32]);
@@ -215,7 +215,7 @@ mod dns {
             assert_eq!(contract.register(name), Err(Error::NameAlreadyExists));
         }
 
-        #[ink::test]
+        #[pro::test]
         fn set_address_works() {
             let accounts = default_accounts();
             let name = Hash::from([0x99; 32]);
@@ -238,7 +238,7 @@ mod dns {
             assert_eq!(contract.get_address(name), accounts.bob);
         }
 
-        #[ink::test]
+        #[pro::test]
         fn transfer_works() {
             let accounts = default_accounts();
             let name = Hash::from([0x99; 32]);

@@ -18,7 +18,7 @@
 //! Their interfaces and functionality might not be complete.
 //!
 //! Users are required to provide their own type definitions and `Environment`
-//! implementations in order to write ink! contracts for other chain configurations.
+//! implementations in order to write pro! contracts for other chain configurations.
 //!
 //! # Note
 //!
@@ -42,9 +42,9 @@ use scale::{
     Encode,
 };
 #[cfg(feature = "std")]
-use scale_info::TypeInfo;
+use tetsy_scale_info::TypeInfo;
 
-/// The environmental types usable by contracts defined with ink!.
+/// The environmental types usable by contracts defined with pro!.
 pub trait Environment {
     /// The maximum number of supported event topics provided by the runtime.
     ///
@@ -95,10 +95,10 @@ pub trait Environment {
 
     /// The chain extension for the environment.
     ///
-    /// This is a type that is defined through the `#[ink::chain_extension]` proc. macro.
-    /// For more information about usage and definition click [this][chain_extension] link.
+    /// This is a type that is defined through the `#[pro::chain_extension]` proc. macro.
+    /// For more information about usage and definition click [this][chain_extension] lpro.
     ///
-    /// [chain_extension]: https://paritytech.github.io/ink/ink_lang/attr.chain_extension.html
+    /// [chain_extension]: https://paritytech.github.io/pro/pro_lang/attr.chain_extension.html
     type ChainExtension;
 }
 

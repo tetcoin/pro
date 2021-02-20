@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Implementation of ink! storage traits.
+//! Implementation of pro! storage traits.
 
 use super::Vec as StorageVec;
 use crate::{
@@ -30,12 +30,12 @@ const _: () = {
         lazy::Lazy,
         traits::StorageLayout,
     };
-    use ink_metadata::layout::{
+    use pro_metadata::layout::{
         FieldLayout,
         Layout,
         StructLayout,
     };
-    use scale_info::TypeInfo;
+    use tetsy_scale_info::TypeInfo;
 
     impl<T> StorageLayout for StorageVec<T>
     where

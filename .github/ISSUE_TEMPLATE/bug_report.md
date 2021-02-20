@@ -9,8 +9,8 @@ assignees: ''
 
 **Questions**
 
-- Is this a bug concerning building of ink! smart contracts?
-    - If **yes** then you might instead want to file a bug report to ink!'s build tool: https://github.com/paritytech/cargo-contract
+- Is this a bug concerning building of pro! smart contracts?
+    - If **yes** then you might instead want to file a bug report to pro!'s build tool: https://github.com/tetcoin/cargo-contract
 - Is this a bug that appears when interacting with smart contracts via the Polkadot JS browser UI?
     - If **yes** then you might instead want to file a bug report to the Polkadot JS Apps project instead: https://github.com/polkadot-js/apps
 
@@ -19,7 +19,7 @@ assignees: ''
 - Are you using the nightly Rust channel to compile your smart contract?
 - Are you using an up-to-date `cargo-contract`? Check via `cargo contract --version`.
     - If you are unsure please tell us your version noted there.
-- Are you using an up-to-date ink! version in your smart contract?
+- Are you using an up-to-date pro! version in your smart contract?
     - You can check this by looking into the `[dependencies]` section of your `Cargo.toml`.
     - If you are unsure please tell us your version noted there.
 

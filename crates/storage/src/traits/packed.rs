@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use super::SpreadLayout;
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 /// Types that can be stored to and loaded from a single contract storage cell.
 pub trait PackedLayout: SpreadLayout + scale::Encode + scale::Decode {

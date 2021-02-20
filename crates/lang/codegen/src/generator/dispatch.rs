@@ -32,7 +32,7 @@ use syn::spanned::Spanned as _;
 
 /// Generates code for the message and constructor dispatcher.
 ///
-/// This code efficiently selects the dispatched ink! constructor or message
+/// This code efficiently selects the dispatched pro! constructor or message
 /// by inspecting the first four bytes (selector) of the given input bytes.
 ///
 /// As this happens on every contract execution this code must be highly optimized.
@@ -42,7 +42,7 @@ use syn::spanned::Spanned as _;
 /// produce out of the rest of the input buffer.
 ///
 /// The rest of the input buffer is then automatically decoded directly into the
-/// expected input types of the respective ink! constructor or message.
+/// expected input types of the respective pro! constructor or message.
 #[derive(From)]
 pub struct Dispatch<'a> {
     contract: &'a ir::Contract,
@@ -83,7 +83,7 @@ impl GenerateCode for Dispatch<'_> {
 }
 
 impl Dispatch<'_> {
-    /// Generates the static ink! contract entry points.
+    /// Generates the static pro! contract entry points.
     ///
     /// # Note
     ///
@@ -96,9 +96,9 @@ impl Dispatch<'_> {
             #[cfg(not(test))]
             #[no_mangle]
             fn deploy() -> u32 {
-                ::ink_lang::DispatchRetCode::from(
-                    <#storage_ident as ::ink_lang::DispatchUsingMode>::dispatch_using_mode(
-                        ::ink_lang::DispatchMode::Instantiate,
+                ::pro_lang::DispatchRetCode::from(
+                    <#storage_ident as ::pro_lang::DispatchUsingMode>::dispatch_using_mode(
+                        ::pro_lang::DispatchMode::Instantiate,
                     ),
                 )
                 .to_u32()
@@ -108,12 +108,12 @@ impl Dispatch<'_> {
             #[no_mangle]
             fn call() -> u32 {
                 if #all_messages_deny_payment {
-                    ::ink_lang::deny_payment::<<#storage_ident as ::ink_lang::ContractEnv>::Env>()
-                        .expect("caller transferred value even though all ink! message deny payments")
+                    ::pro_lang::deny_payment::<<#storage_ident as ::pro_lang::ContractEnv>::Env>()
+                        .expect("caller transferred value even though all pro! message deny payments")
                 }
-                ::ink_lang::DispatchRetCode::from(
-                    <#storage_ident as ::ink_lang::DispatchUsingMode>::dispatch_using_mode(
-                        ::ink_lang::DispatchMode::Call,
+                ::pro_lang::DispatchRetCode::from(
+                    <#storage_ident as ::pro_lang::DispatchUsingMode>::dispatch_using_mode(
+                        ::pro_lang::DispatchMode::Call,
                     ),
                 )
                 .to_u32()
@@ -125,22 +125,22 @@ impl Dispatch<'_> {
     fn generate_dispatch_using_mode(&self) -> TokenStream2 {
         let storage_ident = self.contract.module().storage().ident();
         quote! {
-            impl ::ink_lang::DispatchUsingMode for #storage_ident {
+            impl ::pro_lang::DispatchUsingMode for #storage_ident {
                 #[allow(unused_parens)]
                 fn dispatch_using_mode(
-                    mode: ::ink_lang::DispatchMode
-                ) -> core::result::Result<(), ::ink_lang::DispatchError> {
+                    mode: ::pro_lang::DispatchMode
+                ) -> core::result::Result<(), ::pro_lang::DispatchError> {
                     match mode {
-                        ::ink_lang::DispatchMode::Instantiate => {
-                            <<#storage_ident as ::ink_lang::ConstructorDispatcher>::Type as ::ink_lang::Execute>::execute(
-                                ::ink_env::decode_input::<<#storage_ident as ::ink_lang::ConstructorDispatcher>::Type>()
-                                    .map_err(|_| ::ink_lang::DispatchError::CouldNotReadInput)?
+                        ::pro_lang::DispatchMode::Instantiate => {
+                            <<#storage_ident as ::pro_lang::ConstructorDispatcher>::Type as ::pro_lang::Execute>::execute(
+                                ::pro_env::decode_input::<<#storage_ident as ::pro_lang::ConstructorDispatcher>::Type>()
+                                    .map_err(|_| ::pro_lang::DispatchError::CouldNotReadInput)?
                             )
                         }
-                        ::ink_lang::DispatchMode::Call => {
-                            <<#storage_ident as ::ink_lang::MessageDispatcher>::Type as ::ink_lang::Execute>::execute(
-                                ::ink_env::decode_input::<<#storage_ident as ::ink_lang::MessageDispatcher>::Type>()
-                                    .map_err(|_| ::ink_lang::DispatchError::CouldNotReadInput)?
+                        ::pro_lang::DispatchMode::Call => {
+                            <<#storage_ident as ::pro_lang::MessageDispatcher>::Type as ::pro_lang::Execute>::execute(
+                                ::pro_env::decode_input::<<#storage_ident as ::pro_lang::MessageDispatcher>::Type>()
+                                    .map_err(|_| ::pro_lang::DispatchError::CouldNotReadInput)?
                             )
                         }
                     }
@@ -149,16 +149,16 @@ impl Dispatch<'_> {
         }
     }
 
-    /// Returns the generated ink! namespace identifier for the given callable kind.
+    /// Returns the generated pro! namespace identifier for the given callable kind.
     fn dispatch_trait_impl_namespace(kind: ir::CallableKind) -> Ident {
         match kind {
-            ir::CallableKind::Constructor => format_ident!("__ink_Constr"),
-            ir::CallableKind::Message => format_ident!("__ink_Msg"),
+            ir::CallableKind::Constructor => format_ident!("__pro_Constr"),
+            ir::CallableKind::Message => format_ident!("__pro_Msg"),
         }
     }
 
     /// Generates utility types to emulate namespaces to disambiguate dispatch trait
-    /// implementations for ink! messages and ink! constructors with overlapping
+    /// implementations for pro! messages and pro! constructors with overlapping
     /// selectors.
     fn generate_trait_impl_namespaces(&self) -> TokenStream2 {
         let message_namespace =
@@ -194,7 +194,7 @@ impl Dispatch<'_> {
         }
     }
 
-    /// Generates code for the dispatch trait impls for a generic ink! callable.
+    /// Generates code for the dispatch trait impls for a generic pro! callable.
     fn generate_trait_impls_for_callable<C>(
         &self,
         cws: ir::CallableWithSelector<'_, C>,
@@ -221,19 +221,19 @@ impl Dispatch<'_> {
             quote! { #( #input_types )* }
         };
         let fn_input_impl = quote_spanned!(callable.inputs_span() =>
-            impl ::ink_lang::FnInput for #namespace<[(); #selector_id]> {
+            impl ::pro_lang::FnInput for #namespace<[(); #selector_id]> {
                 type Input = #input_types_tuple;
             }
         );
         let fn_selector_impl = quote_spanned!(callable_span =>
-            impl ::ink_lang::FnSelector for #namespace<[(); #selector_id]> {
-                const SELECTOR: ::ink_env::call::Selector = ::ink_env::call::Selector::new([
+            impl ::pro_lang::FnSelector for #namespace<[(); #selector_id]> {
+                const SELECTOR: ::pro_env::call::Selector = ::pro_env::call::Selector::new([
                     #( #selector_bytes ),*
                 ]);
             }
         );
         let fn_state_impl = quote_spanned!(callable_span =>
-            impl ::ink_lang::FnState for #namespace<[(); #selector_id]> {
+            impl ::pro_lang::FnState for #namespace<[(); #selector_id]> {
                 type State = #storage_ident;
             }
         );
@@ -246,7 +246,7 @@ impl Dispatch<'_> {
 
     /// Returns a tuple of:
     ///
-    /// - Vector over the generated identifier bindings (`__ink_binding_N`) for all inputs.
+    /// - Vector over the generated identifier bindings (`__pro_binding_N`) for all inputs.
     /// - `TokenStream` representing the binding identifiers as tuple (for >=2 inputs),
     ///   as single identifier (for exactly one input) or as wildcard (`_`) if there are
     ///   no input bindings.
@@ -265,19 +265,19 @@ impl Dispatch<'_> {
     /// **Exactly one input:**
     /// ```
     /// # use quote::quote;
-    /// # let __ink_binding_0 = ();
-    /// ( vec![__ink_binding_0],
-    ///   quote! { __ink_binding_0 } )
+    /// # let __pro_binding_0 = ();
+    /// ( vec![__pro_binding_0],
+    ///   quote! { __pro_binding_0 } )
     /// # ;
     /// ```
     ///
     /// **Multiple (>=2) inputs:**
     /// ```
     /// # use quote::quote;
-    /// # let __ink_binding_0 = ();
-    /// # let __ink_binding_1 = ();
-    /// ( vec![__ink_binding_0, __ink_binding_1, /* ... */],
-    ///   quote! { (__ink_binding_0, __ink_binding_1, ..) } )
+    /// # let __pro_binding_0 = ();
+    /// # let __pro_binding_1 = ();
+    /// ( vec![__pro_binding_0, __pro_binding_1, /* ... */],
+    ///   quote! { (__pro_binding_0, __pro_binding_1, ..) } )
     /// # ;
     /// ```
     fn generate_input_bindings<C>(callable: &C) -> (Vec<Ident>, TokenStream2)
@@ -287,7 +287,7 @@ impl Dispatch<'_> {
         let input_bindings = callable
             .inputs()
             .enumerate()
-            .map(|(n, _pat_type)| format_ident!("__ink_binding_{}", n))
+            .map(|(n, _pat_type)| format_ident!("__pro_binding_{}", n))
             .collect::<Vec<_>>();
         let inputs_as_tuple_or_wildcard = match input_bindings.len() {
             0 => quote! { _ },
@@ -297,7 +297,7 @@ impl Dispatch<'_> {
         (input_bindings, inputs_as_tuple_or_wildcard)
     }
 
-    /// Generates all the dispatch trait implementations for the given ink! message.
+    /// Generates all the dispatch trait implementations for the given pro! message.
     fn generate_trait_impls_for_message(
         &self,
         cws: ir::CallableWithSelector<'_, ir::Message>,
@@ -315,7 +315,7 @@ impl Dispatch<'_> {
         let message_ident = message.ident();
         let namespace = Self::dispatch_trait_impl_namespace(ir::CallableKind::Message);
         let fn_output_impl = quote_spanned!(message.output().span() =>
-            impl ::ink_lang::FnOutput for #namespace<[(); #selector_id]> {
+            impl ::pro_lang::FnOutput for #namespace<[(); #selector_id]> {
                 #[allow(unused_parens)]
                 type Output = #output_tokens;
             }
@@ -337,11 +337,11 @@ impl Dispatch<'_> {
             )
         });
         let message_impl = quote_spanned!(message_span =>
-            impl ::ink_lang::#message_trait_ident for #namespace<[(); #selector_id]> {
+            impl ::pro_lang::#message_trait_ident for #namespace<[(); #selector_id]> {
                 const CALLABLE: fn(
-                    &#mut_token <Self as ::ink_lang::FnState>::State,
-                    <Self as ::ink_lang::FnInput>::Input
-                ) -> <Self as ::ink_lang::FnOutput>::Output = |state, #inputs_as_tuple_or_wildcard| {
+                    &#mut_token <Self as ::pro_lang::FnState>::State,
+                    <Self as ::pro_lang::FnInput>::Input
+                ) -> <Self as ::pro_lang::FnOutput>::Output = |state, #inputs_as_tuple_or_wildcard| {
                     <#storage_ident #as_trait>::#message_ident(state, #( #input_bindings ),* )
                 };
             }
@@ -353,7 +353,7 @@ impl Dispatch<'_> {
         )
     }
 
-    /// Generates all the dispatch trait implementations for the given ink! constructor.
+    /// Generates all the dispatch trait implementations for the given pro! constructor.
     fn generate_trait_impls_for_constructor(
         &self,
         cws: ir::CallableWithSelector<'_, ir::Constructor>,
@@ -375,10 +375,10 @@ impl Dispatch<'_> {
             )
         });
         let constructor_impl = quote_spanned!(constructor_span =>
-            impl ::ink_lang::Constructor for #namespace<[(); #selector_id]> {
+            impl ::pro_lang::Constructor for #namespace<[(); #selector_id]> {
                 const CALLABLE: fn(
-                    <Self as ::ink_lang::FnInput>::Input
-                ) -> <Self as ::ink_lang::FnState>::State = |#inputs_as_tuple_or_wildcard| {
+                    <Self as ::pro_lang::FnInput>::Input
+                ) -> <Self as ::pro_lang::FnState>::State = |#inputs_as_tuple_or_wildcard| {
                     <#storage_ident #as_trait>::#constructor_ident(#( #input_bindings ),* )
                 };
             }
@@ -389,7 +389,7 @@ impl Dispatch<'_> {
         )
     }
 
-    /// Generate all dispatch trait implementations for ink! messages and ink! constructors.
+    /// Generate all dispatch trait implementations for pro! messages and pro! constructors.
     fn generate_dispatch_trait_impls(&self) -> TokenStream2 {
         let message_impls = self
             .contract_messages()
@@ -406,14 +406,14 @@ impl Dispatch<'_> {
     /// Generates variant identifiers for the generated dispatch enum.
     ///
     /// Since we want to avoid generating random names we generate identifiers
-    /// in terms of the selectors of the associated ink! messages or constructors.
+    /// in terms of the selectors of the associated pro! messages or constructors.
     ///
     /// ## Example
     ///
     /// Given prefix of `"Message"` and selector with bytes `0xDEADBEEF` we
-    /// generate the following idenfitier: `__ink_Message_0xDEADBEEF`
+    /// generate the following idenfitier: `__pro_Message_0xDEADBEEF`
     ///
-    /// This way it is clear that this is an ink! generated identifier and even
+    /// This way it is clear that this is an pro! generated identifier and even
     /// encodes the unique selector bytes to make the identifier unique.
     fn generate_dispatch_variant_ident<C>(
         &self,
@@ -428,7 +428,7 @@ impl Dispatch<'_> {
             ir::CallableKind::Constructor => "Constructor",
         };
         quote::format_ident!(
-            "__ink_{}_0x{:02X}{:02X}{:02X}{:02X}",
+            "__pro_{}_0x{:02X}{:02X}{:02X}{:02X}",
             prefix,
             selector_bytes[0],
             selector_bytes[1],
@@ -441,7 +441,7 @@ impl Dispatch<'_> {
     ///
     /// # Note
     ///
-    /// There is one match arm per ink! constructor or message for the dispatch
+    /// There is one match arm per pro! constructor or message for the dispatch
     /// `scale::Decode` implementation.
     fn generate_dispatch_variant_decode<C>(
         &self,
@@ -468,7 +468,7 @@ impl Dispatch<'_> {
     ///
     /// # Note
     ///
-    /// There is one match arm per ink! constructor or message for the dispatch
+    /// There is one match arm per pro! constructor or message for the dispatch
     /// `scale::Decode` implementation.
     fn generate_dispatch_variant_arm<C>(
         &self,
@@ -484,7 +484,7 @@ impl Dispatch<'_> {
         }
     }
 
-    /// Returns `true` if all ink! messages of `self` deny payments.
+    /// Returns `true` if all pro! messages of `self` deny payments.
     ///
     /// # Note
     ///
@@ -501,7 +501,7 @@ impl Dispatch<'_> {
     ///
     /// # Note
     ///
-    /// This is basically the code per ink! message that is going to be executed after
+    /// This is basically the code per pro! message that is going to be executed after
     /// the dispatch has already taken place.
     fn generate_dispatch_execute_message_arm(
         &self,
@@ -530,7 +530,7 @@ impl Dispatch<'_> {
         };
         let selector_id = cws.composed_selector().unique_id();
         let namespace = Self::dispatch_trait_impl_namespace(ir::CallableKind::Message);
-        // If all ink! messages deny payment we can move the payment check to before
+        // If all pro! messages deny payment we can move the payment check to before
         // the message dispatch which is more efficient.
         let accepts_payments = cws.is_payable() || self.all_messages_deny_payment();
         let is_dynamic_storage_allocation_enabled = self
@@ -539,11 +539,11 @@ impl Dispatch<'_> {
             .is_dynamic_storage_allocator_enabled();
         quote! {
             Self::#ident(#(#arg_pats),*) => {
-                ::ink_lang::#exec_fn::<<#storage_ident as ::ink_lang::ContractEnv>::Env, #namespace<[(); #selector_id]>, _>(
-                    ::ink_lang::AcceptsPayments(#accepts_payments),
-                    ::ink_lang::EnablesDynamicStorageAllocator(#is_dynamic_storage_allocation_enabled),
+                ::pro_lang::#exec_fn::<<#storage_ident as ::pro_lang::ContractEnv>::Env, #namespace<[(); #selector_id]>, _>(
+                    ::pro_lang::AcceptsPayments(#accepts_payments),
+                    ::pro_lang::EnablesDynamicStorageAllocator(#is_dynamic_storage_allocation_enabled),
                     move |state: &#mut_mod #storage_ident| {
-                        <#namespace<[(); #selector_id]> as ::ink_lang::#msg_trait>::CALLABLE(
+                        <#namespace<[(); #selector_id]> as ::pro_lang::#msg_trait>::CALLABLE(
                             state, #arg_inputs
                         )
                     }
@@ -552,7 +552,7 @@ impl Dispatch<'_> {
         }
     }
 
-    /// Returns an iterator over all ink! messages of the ink! contract.
+    /// Returns an iterator over all pro! messages of the pro! contract.
     fn contract_messages(
         &self,
     ) -> impl Iterator<Item = ir::CallableWithSelector<ir::Message>> {
@@ -563,7 +563,7 @@ impl Dispatch<'_> {
             .flatten()
     }
 
-    /// Generates the entire dispatch variant enum for all ink! messages.
+    /// Generates the entire dispatch variant enum for all pro! messages.
     fn generate_message_dispatch_enum(&self) -> TokenStream2 {
         let storage_ident = self.contract.module().storage().ident();
         let message_variants = self
@@ -578,25 +578,25 @@ impl Dispatch<'_> {
         quote! {
             const _: () = {
                 #[doc(hidden)]
-                pub enum __ink_MessageDispatchEnum {
+                pub enum __pro_MessageDispatchEnum {
                     #( #message_variants ),*
                 }
 
-                impl ::ink_lang::MessageDispatcher for #storage_ident {
-                    type Type = __ink_MessageDispatchEnum;
+                impl ::pro_lang::MessageDispatcher for #storage_ident {
+                    type Type = __pro_MessageDispatchEnum;
                 }
 
-                impl ::scale::Decode for __ink_MessageDispatchEnum {
+                impl ::scale::Decode for __pro_MessageDispatchEnum {
                     fn decode<I: ::scale::Input>(input: &mut I) -> ::core::result::Result<Self, ::scale::Error> {
                         match <[u8; 4] as ::scale::Decode>::decode(input)? {
                             #( #decode_message )*
-                            _invalid => Err(::scale::Error::from("encountered unknown ink! message selector"))
+                            _invalid => Err(::scale::Error::from("encountered unknown pro! message selector"))
                         }
                     }
                 }
 
-                impl ::ink_lang::Execute for __ink_MessageDispatchEnum {
-                    fn execute(self) -> ::core::result::Result<(), ::ink_lang::DispatchError> {
+                impl ::pro_lang::Execute for __pro_MessageDispatchEnum {
+                    fn execute(self) -> ::core::result::Result<(), ::pro_lang::DispatchError> {
                         match self {
                             #( #execute_variants )*
                         }
@@ -610,7 +610,7 @@ impl Dispatch<'_> {
     ///
     /// # Note
     ///
-    /// This is basically the code per ink! constructor that is going to be executed after
+    /// This is basically the code per pro! constructor that is going to be executed after
     /// the dispatch has already taken place.
     fn generate_dispatch_execute_constructor_arm(
         &self,
@@ -633,10 +633,10 @@ impl Dispatch<'_> {
             .is_dynamic_storage_allocator_enabled();
         quote! {
             Self::#ident(#(#arg_pats),*) => {
-                ::ink_lang::execute_constructor::<#namespace<[(); #selector_id]>, _>(
-                    ::ink_lang::EnablesDynamicStorageAllocator(#is_dynamic_storage_allocation_enabled),
+                ::pro_lang::execute_constructor::<#namespace<[(); #selector_id]>, _>(
+                    ::pro_lang::EnablesDynamicStorageAllocator(#is_dynamic_storage_allocation_enabled),
                     move || {
-                        <#namespace<[(); #selector_id]> as ::ink_lang::Constructor>::CALLABLE(
+                        <#namespace<[(); #selector_id]> as ::pro_lang::Constructor>::CALLABLE(
                             #arg_inputs
                         )
                     }
@@ -645,7 +645,7 @@ impl Dispatch<'_> {
         }
     }
 
-    /// Returns an iterator over all ink! constructors of the ink! contract.
+    /// Returns an iterator over all pro! constructors of the pro! contract.
     fn contract_constructors(
         &self,
     ) -> impl Iterator<Item = ir::CallableWithSelector<ir::Constructor>> {
@@ -656,7 +656,7 @@ impl Dispatch<'_> {
             .flatten()
     }
 
-    /// Generates the entire dispatch variant enum for all ink! messages.
+    /// Generates the entire dispatch variant enum for all pro! messages.
     fn generate_constructor_dispatch_enum(&self) -> TokenStream2 {
         let storage_ident = self.contract.module().storage().ident();
         let message_variants = self
@@ -671,25 +671,25 @@ impl Dispatch<'_> {
         quote! {
             const _: () = {
                 #[doc(hidden)]
-                pub enum __ink_ConstructorDispatchEnum {
+                pub enum __pro_ConstructorDispatchEnum {
                     #( #message_variants ),*
                 }
 
-                impl ::ink_lang::ConstructorDispatcher for #storage_ident {
-                    type Type = __ink_ConstructorDispatchEnum;
+                impl ::pro_lang::ConstructorDispatcher for #storage_ident {
+                    type Type = __pro_ConstructorDispatchEnum;
                 }
 
-                impl ::scale::Decode for __ink_ConstructorDispatchEnum {
+                impl ::scale::Decode for __pro_ConstructorDispatchEnum {
                     fn decode<I: ::scale::Input>(input: &mut I) -> ::core::result::Result<Self, ::scale::Error> {
                         match <[u8; 4] as ::scale::Decode>::decode(input)? {
                             #( #decode_message )*
-                            _invalid => Err(::scale::Error::from("encountered unknown ink! constructor selector"))
+                            _invalid => Err(::scale::Error::from("encountered unknown pro! constructor selector"))
                         }
                     }
                 }
 
-                impl ::ink_lang::Execute for __ink_ConstructorDispatchEnum {
-                    fn execute(self) -> ::core::result::Result<(), ::ink_lang::DispatchError> {
+                impl ::pro_lang::Execute for __pro_ConstructorDispatchEnum {
+                    fn execute(self) -> ::core::result::Result<(), ::pro_lang::DispatchError> {
                         match self {
                             #( #execute_variants )*
                         }

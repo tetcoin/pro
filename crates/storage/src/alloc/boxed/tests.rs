@@ -33,18 +33,18 @@ use core::{
         DerefMut,
     },
 };
-use ink_env::test::DefaultAccounts;
-use ink_prelude::borrow::{
+use pro_env::test::DefaultAccounts;
+use pro_prelude::borrow::{
     Borrow,
     BorrowMut,
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 fn run_test<F>(f: F)
 where
-    F: FnOnce(DefaultAccounts<ink_env::DefaultEnvironment>),
+    F: FnOnce(DefaultAccounts<pro_env::DefaultEnvironment>),
 {
-    ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|default_accounts| {
+    pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|default_accounts| {
         alloc::initialize(ContractPhase::Deploy);
         f(default_accounts);
         Ok(())

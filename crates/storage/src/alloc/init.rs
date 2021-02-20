@@ -22,7 +22,7 @@ use core::{
     mem,
     mem::ManuallyDrop,
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 /// The default dynamic allocator key offset.
 ///
@@ -248,7 +248,7 @@ cfg_if! {
 
     } else {
         compile_error! {
-            "ink! only support compilation as `std` or `no_std` + `wasm32-unknown`"
+            "pro! only support compilation as `std` or `no_std` + `wasm32-unknown`"
         }
     }
 }

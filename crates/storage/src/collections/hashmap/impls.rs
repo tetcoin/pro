@@ -27,15 +27,15 @@ use core::{
     iter::FromIterator,
     ops,
 };
-use ink_env::hash::{
+use pro_env::hash::{
     CryptoHash,
     HashOutput,
 };
-use ink_prelude::borrow::{
+use pro_prelude::borrow::{
     Borrow,
     ToOwned,
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 impl<K, V, H> Drop for StorageHashMap<K, V, H>
 where

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use super::*;
-use ink_primitives::KeyPtr;
+use pro_primitives::KeyPtr;
 use pretty_assertions::assert_eq;
 
 #[test]
@@ -324,7 +324,7 @@ fn unbounded_hashing_layout(key_ptr: &mut KeyPtr) -> Layout {
         root_key,
         HashingStrategy::new(
             CryptoHasher::Blake2x256,
-            b"ink storage hashmap".to_vec(),
+            b"pro storage hashmap".to_vec(),
             Vec::new(),
         ),
         CellLayout::new::<(i32, bool)>(LayoutKey::from(root_key)),

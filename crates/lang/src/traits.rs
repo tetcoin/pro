@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use ink_env::{
+use pro_env::{
     call::{
         utils::{
             ReturnType,
@@ -24,14 +24,14 @@ use ink_env::{
     },
     Environment,
 };
-use ink_storage::traits::SpreadLayout;
+use pro_storage::traits::SpreadLayout;
 
-/// Trait used to indicate that an ink! trait definition has been checked
-/// by the `#[ink::trait_definition]` proc. macro.
+/// Trait used to indicate that an pro! trait definition has been checked
+/// by the `#[pro::trait_definition]` proc. macro.
 #[doc(hidden)]
-pub unsafe trait CheckedInkTrait<T> {}
+pub unsafe trait CheckedProTrait<T> {}
 
-/// Trait used by `#[ink::trait_definition]` to ensure that the associated
+/// Trait used by `#[pro::trait_definition]` to ensure that the associated
 /// return type for each trait message is correct.
 #[doc(hidden)]
 pub trait ImpliesReturn<T> {}

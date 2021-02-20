@@ -1,17 +1,17 @@
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract(compile_as_dependency = "yes")]
+#[pro::contract(compile_as_dependency = "yes")]
 mod invalid_as_dependency {
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct InvalidAsDependency {}
 
     impl InvalidAsDependency {
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn constructor() -> Self {
             Self {}
         }
 
-        #[ink(message)]
+        #[pro(message)]
         pub fn message(&self) {}
     }
 }

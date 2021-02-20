@@ -74,17 +74,17 @@ pub use self::multisig_plain::{
     MultisigPlain,
     Transaction,
 };
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract]
+#[pro::contract]
 mod multisig_plain {
-    use ink_env::call::{
+    use pro_env::call::{
         build_call,
         utils::ReturnType,
         ExecutionInput,
     };
-    use ink_prelude::vec::Vec;
-    use ink_storage::{
+    use pro_prelude::vec::Vec;
+    use pro_storage::{
         collections::{
             HashMap as StorageHashMap,
             Stash as StorageStash,
@@ -120,7 +120,7 @@ mod multisig_plain {
     #[derive(scale::Encode, scale::Decode, Clone, Copy, SpreadLayout, PackedLayout)]
     #[cfg_attr(
         feature = "std",
-        derive(scale_info::TypeInfo, ink_storage::traits::StorageLayout)
+        derive(tetsy_scale_info::TypeInfo, pro_storage::traits::StorageLayout)
     )]
     pub enum ConfirmationStatus {
         /// The transaction is already confirmed.
@@ -138,8 +138,8 @@ mod multisig_plain {
             Debug,
             PartialEq,
             Eq,
-            scale_info::TypeInfo,
-            ink_storage::traits::StorageLayout
+            tetsy_scale_info::TypeInfo,
+            pro_storage::traits::StorageLayout
         )
     )]
     pub struct Transaction {
@@ -157,13 +157,13 @@ mod multisig_plain {
 
     /// Errors that can occur upon calling this contract.
     #[derive(Copy, Clone, Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
-    #[cfg_attr(feature = "std", derive(::scale_info::TypeInfo))]
+    #[cfg_attr(feature = "std", derive(::tetsy_scale_info::TypeInfo))]
     pub enum Error {
         /// Returned if the call failed.
         TransactionFailed,
     }
 
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct MultisigPlain {
         /// Every entry in this map represents the confirmation of an owner for a
         /// transaction. This is effecively a set rather than a map.
@@ -185,77 +185,77 @@ mod multisig_plain {
     }
 
     /// Emitted when an owner confirms a transaction.
-    #[ink(event)]
+    #[pro(event)]
     pub struct Confirmation {
         /// The transaction that was confirmed.
-        #[ink(topic)]
+        #[pro(topic)]
         transaction: TransactionId,
         /// The owner that sent the confirmation.
-        #[ink(topic)]
+        #[pro(topic)]
         from: AccountId,
         /// The confirmation status after this confirmation was applied.
-        #[ink(topic)]
+        #[pro(topic)]
         status: ConfirmationStatus,
     }
 
     /// Emitted when an owner revoked a confirmation.
-    #[ink(event)]
+    #[pro(event)]
     pub struct Revokation {
         /// The transaction that was revoked.
-        #[ink(topic)]
+        #[pro(topic)]
         transaction: TransactionId,
         /// The owner that sent the revokation.
-        #[ink(topic)]
+        #[pro(topic)]
         from: AccountId,
     }
 
     /// Emitted when an owner submits a transaction.
-    #[ink(event)]
+    #[pro(event)]
     pub struct Submission {
         /// The transaction that was submitted.
-        #[ink(topic)]
+        #[pro(topic)]
         transaction: TransactionId,
     }
 
     /// Emitted when a transaction was canceled.
-    #[ink(event)]
+    #[pro(event)]
     pub struct Cancelation {
         /// The transaction that was canceled.
-        #[ink(topic)]
+        #[pro(topic)]
         transaction: TransactionId,
     }
 
     /// Emitted when a transaction was executed.
-    #[ink(event)]
+    #[pro(event)]
     pub struct Execution {
         /// The transaction that was executed.
-        #[ink(topic)]
+        #[pro(topic)]
         transaction: TransactionId,
         /// Indicates whether the transaction executed successfully. If so the `Ok` value holds
         /// the output in bytes. The Option is `None` when the transaction was executed through
         /// `invoke_transaction` rather than `evaluate_transaction`.
-        #[ink(topic)]
+        #[pro(topic)]
         result: Result<Option<Vec<u8>>, Error>,
     }
 
     /// Emitted when an owner is added to the wallet.
-    #[ink(event)]
+    #[pro(event)]
     pub struct OwnerAddition {
         /// The owner that was added.
-        #[ink(topic)]
+        #[pro(topic)]
         owner: AccountId,
     }
 
     /// Emitted when an owner is removed from the wallet.
-    #[ink(event)]
+    #[pro(event)]
     pub struct OwnerRemoval {
         /// The owner that was removed.
-        #[ink(topic)]
+        #[pro(topic)]
         owner: AccountId,
     }
 
     /// Emitted when the requirement changed.
-    #[ink(event)]
+    #[pro(event)]
     pub struct RequirementChange {
         /// The new requirement value.
         new_requirement: u32,
@@ -270,7 +270,7 @@ mod multisig_plain {
         /// # Panics
         ///
         /// If `requirement` violates our invariant.
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn new(requirement: u32, owners: Vec<AccountId>) -> Self {
             let is_owner: StorageHashMap<_, _, _> =
                 owners.iter().copied().map(|owner| (owner, ())).collect();
@@ -300,7 +300,7 @@ mod multisig_plain {
         /// Since this message must be send by the wallet itself it has to be build as a
         /// `Transaction` and dispatched through `submit_transaction` + `invoke_transaction`:
         /// ```no_run
-        /// use ink_env::{DefaultEnvironment as Env, AccountId, call::{CallParams, Selector}, test::CallData};
+        /// use pro_env::{DefaultEnvironment as Env, AccountId, call::{CallParams, Selector}, test::CallData};
         /// use multisig_plain::{Transaction, ConfirmationStatus};
         ///
         /// // address of an existing MultiSigPlain contract
@@ -334,7 +334,7 @@ mod multisig_plain {
         /// );
         /// invoke.push_arg(&id).fire();
         /// ```
-        #[ink(message)]
+        #[pro(message)]
         pub fn add_owner(&mut self, new_owner: AccountId) {
             self.ensure_from_wallet();
             self.ensure_no_owner(&new_owner);
@@ -353,7 +353,7 @@ mod multisig_plain {
         /// # Panics
         ///
         /// If `owner` is no owner of the wallet.
-        #[ink(message)]
+        #[pro(message)]
         pub fn remove_owner(&mut self, owner: AccountId) {
             self.ensure_from_wallet();
             self.ensure_owner(&owner);
@@ -374,7 +374,7 @@ mod multisig_plain {
         /// # Panics
         ///
         /// If `old_owner` is no owner or if `new_owner` already is one.
-        #[ink(message)]
+        #[pro(message)]
         pub fn replace_owner(&mut self, old_owner: AccountId, new_owner: AccountId) {
             self.ensure_from_wallet();
             self.ensure_owner(&old_owner);
@@ -395,7 +395,7 @@ mod multisig_plain {
         /// # Panics
         ///
         /// If the `new_requirement` violates our invariant.
-        #[ink(message)]
+        #[pro(message)]
         pub fn change_requirement(&mut self, new_requirement: u32) {
             self.ensure_from_wallet();
             ensure_requirement_is_valid(self.owners.len(), new_requirement);
@@ -406,7 +406,7 @@ mod multisig_plain {
         /// Add a new transaction candiate to the contract.
         ///
         /// This also confirms the transaction for the caller. This can be called by any owner.
-        #[ink(message)]
+        #[pro(message)]
         pub fn submit_transaction(
             &mut self,
             transaction: Transaction,
@@ -428,7 +428,7 @@ mod multisig_plain {
         /// # Panics
         ///
         /// If `trans_id` is no valid transaction id.
-        #[ink(message)]
+        #[pro(message)]
         pub fn cancel_transaction(&mut self, trans_id: TransactionId) {
             self.ensure_from_wallet();
             if self.take_transaction(trans_id).is_some() {
@@ -445,7 +445,7 @@ mod multisig_plain {
         /// # Panics
         ///
         /// If `trans_id` is no valid transaction id.
-        #[ink(message)]
+        #[pro(message)]
         pub fn confirm_transaction(
             &mut self,
             trans_id: TransactionId,
@@ -462,7 +462,7 @@ mod multisig_plain {
         /// # Panics
         ///
         /// If `trans_id` is no valid transaction id.
-        #[ink(message)]
+        #[pro(message)]
         pub fn revoke_confirmation(&mut self, trans_id: TransactionId) {
             self.ensure_caller_is_owner();
             let caller = self.env().caller();
@@ -486,14 +486,14 @@ mod multisig_plain {
         ///
         /// Its return value indicates whether the called transaction was successful.
         /// This can be called by anyone.
-        #[ink(message)]
+        #[pro(message)]
         pub fn invoke_transaction(
             &mut self,
             trans_id: TransactionId,
         ) -> Result<(), Error> {
             self.ensure_confirmed(trans_id);
             let t = self.take_transaction(trans_id).expect(WRONG_TRANSACTION_ID);
-            let result = build_call::<<Self as ::ink_lang::ContractEnv>::Env>()
+            let result = build_call::<<Self as ::pro_lang::ContractEnv>::Env>()
                 .callee(t.callee)
                 .gas_limit(t.gas_limit)
                 .transferred_value(t.transferred_value)
@@ -515,14 +515,14 @@ mod multisig_plain {
         /// Its return value indicates whether the called transaction was successful and contains
         /// its output when successful.
         /// This can be called by anyone.
-        #[ink(message)]
+        #[pro(message)]
         pub fn eval_transaction(
             &mut self,
             trans_id: TransactionId,
         ) -> Result<Vec<u8>, Error> {
             self.ensure_confirmed(trans_id);
             let t = self.take_transaction(trans_id).expect(WRONG_TRANSACTION_ID);
-            let result = build_call::<<Self as ::ink_lang::ContractEnv>::Env>()
+            let result = build_call::<<Self as ::pro_lang::ContractEnv>::Env>()
                 .callee(t.callee)
                 .gas_limit(t.gas_limit)
                 .transferred_value(t.transferred_value)
@@ -594,7 +594,7 @@ mod multisig_plain {
         /// Remove all confirmation state associated with `owner`.
         /// Also adjusts the `self.confirmation_count` variable.
         fn clean_owner_confirmations(&mut self, owner: &AccountId) {
-            use ::ink_storage::collections::stash::Entry as StashEntry;
+            use ::pro_storage::collections::stash::Entry as StashEntry;
             for (trans_id, _) in
                 self.transactions
                     .entries()
@@ -666,7 +666,7 @@ mod multisig_plain {
     #[cfg(test)]
     mod tests {
         use super::*;
-        use ink_env::{
+        use pro_env::{
             call,
             test,
         };
@@ -718,7 +718,7 @@ mod multisig_plain {
 
         fn build_contract() -> MultisigPlain {
             let accounts = default_accounts();
-            let owners = ink_prelude::vec![accounts.alice, accounts.bob, accounts.eve];
+            let owners = pro_prelude::vec![accounts.alice, accounts.bob, accounts.eve];
             MultisigPlain::new(2, owners)
         }
 
@@ -740,7 +740,7 @@ mod multisig_plain {
         #[test]
         fn construction_works() {
             let accounts = default_accounts();
-            let owners = ink_prelude::vec![accounts.alice, accounts.bob, accounts.eve];
+            let owners = pro_prelude::vec![accounts.alice, accounts.bob, accounts.eve];
             let contract = build_contract();
 
             assert_eq!(contract.owners.len(), 3);

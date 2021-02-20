@@ -22,7 +22,7 @@ use alloc::{
     vec::Vec,
 };
 use core::marker::PhantomData;
-use scale_info::{
+use tetsy_scale_info::{
     form::{
         Form,
         MetaForm,
@@ -375,7 +375,7 @@ pub struct MessageSpec<F: Form = MetaForm> {
     /// The name of the message and some optional prefixes.
     ///
     /// In case of trait provided messages and constructors the prefix
-    /// by convention in ink! is the name of the trait.
+    /// by convention in pro! is the name of the trait.
     name: Vec<F::String>,
     /// The selector hash of the message.
     selector: Selector,
@@ -466,7 +466,7 @@ where
     /// Returns the name of the message and some optional prefixes.
     ///
     /// In case of trait provided messages and constructors the prefix
-    /// by convention in ink! is the name of the trait.
+    /// by convention in pro! is the name of the trait.
     pub fn name(&self) -> &[F::String] {
         &self.name
     }
@@ -770,12 +770,12 @@ impl Selector {
 /// however, it will miss the potentially important information that it
 /// is being used through a type alias named `Foo`.
 ///
-/// In ink! we current experience this problem with environmental types
+/// In pro! we current experience this problem with environmental types
 /// such as the `Balance` type that is just a type alias to `u128` in the
 /// default setup. Even though it would be useful for third party tools
 /// such as the Polkadot UI to know that we are handling with `Balance`
 /// types, we currently cannot communicate this without display names.
-pub type DisplayName<F> = scale_info::Path<F>;
+pub type DisplayName<F> = tetsy_scale_info::Path<F>;
 
 /// A type specification.
 ///
@@ -1033,7 +1033,7 @@ impl ReturnTypeSpec {
     /// # Examples
     ///
     /// ```no_run
-    /// # use ink_metadata::{TypeSpec, ReturnTypeSpec};
+    /// # use pro_metadata::{TypeSpec, ReturnTypeSpec};
     /// ReturnTypeSpec::new(None); // no return type;
     /// ReturnTypeSpec::new(TypeSpec::new::<i32>()); // return type of `i32`
     /// ```

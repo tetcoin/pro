@@ -20,21 +20,21 @@ use core::convert::TryFrom;
 use proc_macro2::Ident;
 use syn::spanned::Spanned as _;
 
-/// An ink! storage struct definition.
+/// An pro! storage struct definition.
 ///
-/// Noticed by ink! through the `#[ink(storage)]` annotation.
+/// Noticed by pro! through the `#[pro(storage)]` annotation.
 ///
 /// # Note
 ///
-/// An ink! smart contract must have exactly one storage definition.
-/// The storage definition must be found in the root of the ink! module.
+/// An pro! smart contract must have exactly one storage definition.
+/// The storage definition must be found in the root of the pro! module.
 ///
 /// # Example
 ///
 /// ```
 /// # use core::convert::TryFrom;
-/// # <ink_lang_ir::Storage as TryFrom<syn::ItemStruct>>::try_from(syn::parse_quote! {
-/// #[ink(storage)]
+/// # <pro_lang_ir::Storage as TryFrom<syn::ItemStruct>>::try_from(syn::parse_quote! {
+/// #[pro(storage)]
 /// pub struct MyStorage {
 ///     my_value: bool,
 ///      counter: u32,
@@ -48,7 +48,7 @@ pub struct Storage {
 }
 
 impl quote::ToTokens for Storage {
-    /// We mainly implement this trait for this ink! type to have a derived
+    /// We mainly implement this trait for this pro! type to have a derived
     /// [`Spanned`](`syn::spanned::Spanned`) implementation for it.
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         self.ast.to_tokens(tokens)
@@ -56,23 +56,23 @@ impl quote::ToTokens for Storage {
 }
 
 impl Storage {
-    /// Returns `true` if the first ink! annotation on the given struct is
-    /// `#[ink(storage)]`.
+    /// Returns `true` if the first pro! annotation on the given struct is
+    /// `#[pro(storage)]`.
     ///
     /// # Errors
     ///
-    /// If the first found ink! attribute is malformed.
-    pub(super) fn is_ink_storage(
+    /// If the first found pro! attribute is malformed.
+    pub(super) fn is_pro_storage(
         item_struct: &syn::ItemStruct,
     ) -> Result<bool, syn::Error> {
-        if !ir::contains_ink_attributes(&item_struct.attrs) {
+        if !ir::contains_pro_attributes(&item_struct.attrs) {
             return Ok(false)
         }
-        // At this point we know that there must be at least one ink!
-        // attribute. This can be either the ink! storage struct,
-        // an ink! event or an invalid ink! attribute.
-        let attr = ir::first_ink_attribute(&item_struct.attrs)?
-            .expect("missing expected ink! attribute for struct");
+        // At this point we know that there must be at least one pro!
+        // attribute. This can be either the pro! storage struct,
+        // an pro! event or an invalid pro! attribute.
+        let attr = ir::first_pro_attribute(&item_struct.attrs)?
+            .expect("missing expected pro! attribute for struct");
         Ok(matches!(attr.first().kind(), ir::AttributeArg::Storage))
     }
 }
@@ -82,7 +82,7 @@ impl TryFrom<syn::ItemStruct> for Storage {
 
     fn try_from(item_struct: syn::ItemStruct) -> Result<Self, Self::Error> {
         let struct_span = item_struct.span();
-        let (_ink_attrs, other_attrs) = ir::sanitize_attributes(
+        let (_pro_attrs, other_attrs) = ir::sanitize_attributes(
             struct_span,
             item_struct.attrs,
             &ir::AttributeArgKind::Storage,
@@ -96,7 +96,7 @@ impl TryFrom<syn::ItemStruct> for Storage {
         if !item_struct.generics.params.is_empty() {
             return Err(format_err_spanned!(
                 item_struct.generics.params,
-                "generic ink! storage structs are not supported",
+                "generic pro! storage structs are not supported",
             ))
         }
         utils::ensure_pub_visibility("storage structs", struct_span, &item_struct.vis)?;
@@ -110,7 +110,7 @@ impl TryFrom<syn::ItemStruct> for Storage {
 }
 
 impl Storage {
-    /// Returns the non-ink! attributes of the ink! storage struct.
+    /// Returns the non-pro! attributes of the pro! storage struct.
     pub fn attrs(&self) -> &[syn::Attribute] {
         &self.ast.attrs
     }
@@ -133,7 +133,7 @@ mod tests {
     #[test]
     fn simple_try_from_works() {
         let item_struct: syn::ItemStruct = syn::parse_quote! {
-            #[ink(storage)]
+            #[pro(storage)]
             pub struct MyStorage {
                 field_1: i32,
                 field_2: bool,
@@ -153,14 +153,14 @@ mod tests {
     fn conflicting_attributes_fails() {
         assert_try_from_fails(
             syn::parse_quote! {
-                #[ink(storage)]
-                #[ink(event)]
+                #[pro(storage)]
+                #[pro(event)]
                 pub struct MyStorage {
                     field_1: i32,
                     field_2: bool,
                 }
             },
-            "encountered conflicting ink! attribute argument",
+            "encountered conflicting pro! attribute argument",
         )
     }
 
@@ -168,14 +168,14 @@ mod tests {
     fn duplicate_attributes_fails() {
         assert_try_from_fails(
             syn::parse_quote! {
-                #[ink(storage)]
-                #[ink(storage)]
+                #[pro(storage)]
+                #[pro(storage)]
                 pub struct MyStorage {
                     field_1: i32,
                     field_2: bool,
                 }
             },
-            "encountered duplicate ink! attribute",
+            "encountered duplicate pro! attribute",
         )
     }
 
@@ -183,14 +183,14 @@ mod tests {
     fn wrong_first_attribute_fails() {
         assert_try_from_fails(
             syn::parse_quote! {
-                #[ink(event)]
-                #[ink(storage)]
+                #[pro(event)]
+                #[pro(storage)]
                 pub struct MyStorage {
                     field_1: i32,
                     field_2: bool,
                 }
             },
-            "unexpected first ink! attribute argument",
+            "unexpected first pro! attribute argument",
         )
     }
 
@@ -203,7 +203,7 @@ mod tests {
                     field_2: bool,
                 }
             },
-            "encountered unexpected empty expanded ink! attribute arguments",
+            "encountered unexpected empty expanded pro! attribute arguments",
         )
     }
 
@@ -211,12 +211,12 @@ mod tests {
     fn generic_storage_fails() {
         assert_try_from_fails(
             syn::parse_quote! {
-                #[ink(storage)]
+                #[pro(storage)]
                 pub struct GenericStorage<T> {
                     field_1: T,
                 }
             },
-            "generic ink! storage structs are not supported",
+            "generic pro! storage structs are not supported",
         )
     }
 
@@ -224,13 +224,13 @@ mod tests {
     fn non_pub_storage_struct() {
         assert_try_from_fails(
             syn::parse_quote! {
-                #[ink(storage)]
+                #[pro(storage)]
                 struct PrivateStorage {
                     field_1: i32,
                     field_2: bool,
                 }
             },
-            "non `pub` ink! storage structs are not supported",
+            "non `pub` pro! storage structs are not supported",
         )
     }
 }

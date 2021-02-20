@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use ink_prelude::string::String;
+use pro_prelude::string::String;
 
 /// A debug console used to print console contents and store them.
 pub struct Console {

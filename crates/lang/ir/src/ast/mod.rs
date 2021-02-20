@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Types and abstractions for ink! definitions that require custom syntax.
+//! Types and abstractions for pro! definitions that require custom syntax.
 //!
 //! # Note
 //!
@@ -20,7 +20,7 @@
 //! syntax.
 //!
 //! At the time of this writing we currently only use this for the argument
-//! parsing of ink! config header `#[ink(env = my::env::Types, etc...)]` in order
+//! parsing of pro! config header `#[pro(env = my::env::Types, etc...)]` in order
 //! to be able to parse identifiers in `name = value` segments for the `value`
 //! part.
 

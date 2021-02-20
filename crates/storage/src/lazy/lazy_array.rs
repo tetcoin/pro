@@ -42,7 +42,7 @@ use generic_array::{
     ArrayLength,
     GenericArray,
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 /// The index type used in the lazy storage chunk.
 pub type Index = u32;
@@ -96,13 +96,13 @@ where
 #[cfg(feature = "std")]
 const _: () = {
     use crate::traits::StorageLayout;
-    use ink_metadata::layout::{
+    use pro_metadata::layout::{
         ArrayLayout,
         CellLayout,
         Layout,
         LayoutKey,
     };
-    use scale_info::TypeInfo;
+    use tetsy_scale_info::TypeInfo;
 
     impl<T, N> StorageLayout for LazyArray<T, N>
     where
@@ -351,7 +351,7 @@ where
         } else {
             // The type does not require deep clean-up so we can simply clean-up
             // its associated storage cell and be done without having to load it first.
-            ink_env::clear_contract_storage(&root_key);
+            pro_env::clear_contract_storage(&root_key);
         }
     }
 }
@@ -611,7 +611,7 @@ mod tests {
         SpreadLayout,
     };
     use generic_array::typenum::U4;
-    use ink_primitives::Key;
+    use pro_primitives::Key;
 
     /// Asserts that the cached entries of the given `imap` is equal to the `expected` slice.
     fn assert_cached_entries<N>(
@@ -859,8 +859,8 @@ mod tests {
     }
 
     #[test]
-    fn spread_layout_works() -> ink_env::Result<()> {
-        ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+    fn spread_layout_works() -> pro_env::Result<()> {
+        pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
             let mut larray = <LazyArray<u8, U4>>::new();
             let nothing_changed = &[
                 (0, StorageEntry::new(Some(b'A'), EntryState::Mutated)),

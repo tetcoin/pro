@@ -30,12 +30,12 @@ use crate::{
         SpreadLayout,
     },
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 #[cfg(feature = "std")]
 const _: () = {
     use crate::traits::StorageLayout;
-    use ink_metadata::layout::{
+    use pro_metadata::layout::{
         FieldLayout,
         Layout,
         StructLayout,

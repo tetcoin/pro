@@ -27,10 +27,10 @@ use syn::{
     Token,
 };
 
-/// The attribute arguments for the configuration of an ink! smart contract.
+/// The attribute arguments for the configuration of an pro! smart contract.
 ///
 /// These are the segments `env = ::my::env::Environment` and `compile_as_dependency = true`
-/// in `#[ink::contract(env = ::my::env::Environment, compile_as_dependency = true`.
+/// in `#[pro::contract(env = ::my::env::Environment, compile_as_dependency = true`.
 #[derive(Debug, PartialEq, Eq)]
 pub struct AttributeArgs {
     args: Punctuated<MetaNameValue, Token![,]>,

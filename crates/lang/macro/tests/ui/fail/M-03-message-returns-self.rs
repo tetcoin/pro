@@ -1,17 +1,17 @@
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract]
+#[pro::contract]
 mod message_returns_self {
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct MessageReturnsSelf {}
 
     impl MessageReturnsSelf {
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn constructor() -> Self {
             Self {}
         }
 
-        #[ink(message)]
+        #[pro(message)]
         pub fn returns_self(&self) -> Self {}
     }
 }

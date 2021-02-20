@@ -18,7 +18,7 @@ use criterion::{
     criterion_main,
     Criterion,
 };
-use ink_primitives::{
+use pro_primitives::{
     Key,
     KeyPtr,
 };

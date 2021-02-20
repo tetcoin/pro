@@ -18,7 +18,7 @@
 ///
 /// # Note
 ///
-/// This trait is automatically implemented when using `#[ink::chain_extension]` proc. macro.
+/// This trait is automatically implemented when using `#[pro::chain_extension]` proc. macro.
 pub trait ChainExtensionInstance {
     /// The type of the chain extension instance.
     type Instance;
@@ -33,7 +33,7 @@ pub trait ChainExtensionInstance {
 /// that share a common error code type.
 pub trait ChainExtension {
     /// The error code that determines whether a chain extension method call was successful.
-    type ErrorCode: ink_env::chain_extension::FromStatusCode;
+    type ErrorCode: pro_env::chain_extension::FromStatusCode;
 }
 
 /// Only implemented for `Result<T, E>`.

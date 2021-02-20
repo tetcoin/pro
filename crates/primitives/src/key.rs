@@ -31,7 +31,7 @@ use core::{
 ///
 /// # Unsafe
 ///
-/// Prefer using high-level types found in `ink_storage` to operate on the contract
+/// Prefer using high-level types found in `pro_storage` to operate on the contract
 /// storage.
 #[derive(Copy, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
@@ -228,7 +228,7 @@ impl<'a, 'b> Add<&'b u64> for &'a Key {
 
 #[cfg(feature = "std")]
 const _: () = {
-    use scale_info::{
+    use tetsy_scale_info::{
         build::Fields,
         Path,
         Type,
@@ -240,7 +240,7 @@ const _: () = {
 
         fn type_info() -> Type {
             Type::builder()
-                .path(Path::new("Key", "ink_primitives"))
+                .path(Path::new("Key", "pro_primitives"))
                 .composite(Fields::unnamed().field_of::<[u8; 32]>("[u8; 32]"))
         }
     }

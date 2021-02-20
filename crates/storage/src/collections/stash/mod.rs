@@ -31,7 +31,7 @@ use crate::{
     traits::PackedLayout,
     Pack,
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 /// An index into the stash.
 type Index = u32;
@@ -54,7 +54,7 @@ where
 
 /// Stores general commonly required information about the storage stash.
 #[derive(Debug, scale::Encode, scale::Decode)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+#[cfg_attr(feature = "std", derive(tetsy_scale_info::TypeInfo))]
 struct Header {
     /// The latest vacant index.
     ///
@@ -76,7 +76,7 @@ struct Header {
 
 /// A vacant entry with previous and next vacant indices.
 #[derive(Debug, Copy, Clone, scale::Encode, scale::Decode)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+#[cfg_attr(feature = "std", derive(tetsy_scale_info::TypeInfo))]
 pub struct VacantEntry {
     /// The next vacant index.
     next: Index,
@@ -89,7 +89,7 @@ pub struct VacantEntry {
 /// The vacant entries within a storage stash form a doubly linked list of
 /// vacant entries that is used to quickly re-use their vacant storage.
 #[derive(Debug, scale::Encode, scale::Decode)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+#[cfg_attr(feature = "std", derive(tetsy_scale_info::TypeInfo))]
 pub enum Entry<T> {
     /// A vacant entry that holds the index to the next and previous vacant entry.
     Vacant(VacantEntry),
@@ -382,8 +382,8 @@ where
         }
     }
 
-    /// Updates links from and to neighbouring vacant entries.
-    fn update_neighboring_vacant_entry_links(
+    /// Updates lpros from and to neighbouring vacant entries.
+    fn update_neighboring_vacant_entry_lpros(
         &mut self,
         prev: Index,
         next: Index,
@@ -469,7 +469,7 @@ where
         // At this point we know that the entry is occupied with a value.
         let new_vacant_entry = Entry::Vacant(VacantEntry { prev, next });
         let taken_entry = core::mem::replace(entry_mut, new_vacant_entry);
-        self.update_neighboring_vacant_entry_links(prev, next, at);
+        self.update_neighboring_vacant_entry_lpros(prev, next, at);
         // Take the value out of the taken occupied entry and return it.
         match taken_entry {
             Entry::Occupied(value) => {
@@ -515,7 +515,7 @@ where
         let (prev, next) = self.fetch_prev_and_next_vacant_entry(at);
         let new_vacant_entry = Entry::Vacant(VacantEntry { prev, next });
         self.entries.put(at, Some(new_vacant_entry));
-        self.update_neighboring_vacant_entry_links(prev, next, at);
+        self.update_neighboring_vacant_entry_lpros(prev, next, at);
         use core::cmp::min;
         self.header.last_vacant = min(self.header.last_vacant, min(at, min(prev, next)));
         self.header.len -= 1;

@@ -28,7 +28,7 @@ use crate::{
     Pack,
     Vec as StorageVec,
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 #[cfg(feature = "std")]
 const _: () = {
@@ -36,7 +36,7 @@ const _: () = {
         lazy::Lazy,
         traits::StorageLayout,
     };
-    use ink_metadata::layout::{
+    use pro_metadata::layout::{
         FieldLayout,
         Layout,
         StructLayout,

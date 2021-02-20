@@ -17,15 +17,15 @@ use derive_more::From;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 
-/// Generates code for the `[ink::test]` macro.
+/// Generates code for the `[pro::test]` macro.
 #[derive(From)]
-pub struct InkTest<'a> {
+pub struct ProTest<'a> {
     /// The test function to generate code for.
-    test: &'a ir::InkTest,
+    test: &'a ir::ProTest,
 }
 
-impl GenerateCode for InkTest<'_> {
-    /// Generates the code for `#[ink:test]`.
+impl GenerateCode for ProTest<'_> {
+    /// Generates the code for `#[pro:test]`.
     fn generate_code(&self) -> TokenStream2 {
         let item_fn = &self.test.item_fn;
         let attrs = &item_fn.attrs;
@@ -45,7 +45,7 @@ impl GenerateCode for InkTest<'_> {
                     #( #attrs )*
                     #[test]
                     #vis fn #fn_name( #fn_args ) {
-                        ::ink_env::test::run_test::<::ink_env::DefaultEnvironment, _>(|_| {
+                        ::pro_env::test::run_test::<::pro_env::DefaultEnvironment, _>(|_| {
                             {
                                 let _: () = {
                                     #fn_block
@@ -62,7 +62,7 @@ impl GenerateCode for InkTest<'_> {
                     #( #attrs )*
                     #[test]
                     #vis fn #fn_name( #fn_args ) #rarrow #ret_type {
-                        ::ink_env::test::run_test::<::ink_env::DefaultEnvironment, _>(|_| {
+                        ::pro_env::test::run_test::<::pro_env::DefaultEnvironment, _>(|_| {
                             #fn_block
                         })
                     }
@@ -72,8 +72,8 @@ impl GenerateCode for InkTest<'_> {
     }
 }
 
-impl GenerateCode for ir::InkTest {
+impl GenerateCode for ir::ProTest {
     fn generate_code(&self) -> TokenStream2 {
-        InkTest::from(self).generate_code()
+        ProTest::from(self).generate_code()
     }
 }

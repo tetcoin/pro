@@ -1,12 +1,12 @@
-# ink! code examples
+# pro! code examples
 
-This folder contains a set of example contracts for ink!.
+This folder contains a set of example contracts for pro!.
 
-Have a look at the different examples to better understand how to use ink! to build your own Substrate smart contracts.
+Have a look at the different examples to better understand how to use pro! to build your own Substrate smart contracts.
 
 ## Preparation
 
-For building the example smart contracts found in this folder you will need to have [`cargo-contract`](https://github.com/paritytech/cargo-contract) installed.
+For building the example smart contracts found in this folder you will need to have [`cargo-contract`](https://github.com/tetcoin/cargo-contract) installed.
 
 ```
 cargo install cargo-contract --force
@@ -25,4 +25,4 @@ The `.contract` file combines the Wasm and metadata into one file and can be use
 
 ## License
 
-The entire code within this repository is licensed under the [GPLv3](LICENSE). Please [contact us](https://www.parity.io/contact/) if you have questions about the licensing of our products.
+The entire code within this repository is licensed under the [GPLv3](LICENSE). Please [contact us](https://tetcoin.org/contact/) if you have questions about the licensing of our products.

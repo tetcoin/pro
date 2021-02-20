@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Utilities in use by ink!.
+//! Utilities in use by pro!.
 //!
-//! These are kept separate from ink core utilities to allow for more dynamic inter-crate dependencies.
+//! These are kept separate from pro core utilities to allow for more dynamic inter-crate dependencies.
 //! The main problem is that today Cargo manages crate features on a per-crate basis instead of
-//! a per-crate-target basis thus making dependencies from `ink_lang` (or others) to `ink_env` or `ink_storage` impossible.
+//! a per-crate-target basis thus making dependencies from `pro_lang` (or others) to `pro_env` or `pro_storage` impossible.
 //!
-//! By introducing `ink_primitives` we have a way to share utility components between `ink_env` or `ink_storage` and
-//! other parts of the framework, like `ink_lang`.
+//! By introducing `pro_primitives` we have a way to share utility components between `pro_env` or `pro_storage` and
+//! other parts of the framework, like `pro_lang`.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 

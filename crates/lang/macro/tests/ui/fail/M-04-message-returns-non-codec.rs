@@ -1,20 +1,20 @@
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract]
+#[pro::contract]
 mod message_returns_non_codec {
-    #[derive(scale_info::TypeInfo)]
+    #[derive(tetsy_scale_info::TypeInfo)]
     pub struct NonCodec;
 
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct MessageReturnsNonCodecType {}
 
     impl MessageReturnsNonCodecType {
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn constructor() -> Self {
             Self {}
         }
 
-        #[ink(message)]
+        #[pro(message)]
         pub fn returns_non_codec_type(&self) -> NonCodec {
             NonCodec
         }

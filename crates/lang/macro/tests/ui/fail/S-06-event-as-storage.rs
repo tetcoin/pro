@@ -1,18 +1,18 @@
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract]
+#[pro::contract]
 mod event_as_storage {
-    #[ink(event)]
-    #[ink(storage)] // We cannot have #[ink(storage)] if we already have #[ink(event)]
+    #[pro(event)]
+    #[pro(storage)] // We cannot have #[pro(storage)] if we already have #[pro(event)]
     pub struct EventAsStorage {}
 
     impl EventAsStorage {
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn constructor() -> Self {
             Self {}
         }
 
-        #[ink(message)]
+        #[pro(message)]
         pub fn message(&self) {}
     }
 }

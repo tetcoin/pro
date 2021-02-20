@@ -1,12 +1,12 @@
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract]
+#[pro::contract]
 mod noop {
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct Noop {}
 
     impl Noop {
-        #[ink(message)]
+        #[pro(message)]
         pub fn noop(&self) {}
     }
 }

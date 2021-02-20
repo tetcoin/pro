@@ -15,14 +15,14 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub use self::subber::Subber;
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract]
+#[pro::contract]
 mod subber {
     use accumulator::Accumulator;
 
     /// Decreases the underlying accumulator's value.
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct Subber {
         /// The accumulator to store the value.
         accumulator: accumulator::Accumulator,
@@ -30,13 +30,13 @@ mod subber {
 
     impl Subber {
         /// Creates a new subber from the given accumulator.
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn new(accumulator: Accumulator) -> Self {
             Self { accumulator }
         }
 
         /// Decreases the accumulator's value by some amount.
-        #[ink(message)]
+        #[pro(message)]
         pub fn dec(&mut self, by: i32) {
             self.accumulator.inc(-by)
         }

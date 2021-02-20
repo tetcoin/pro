@@ -28,7 +28,7 @@ use quote::{
 };
 use syn::spanned::Spanned as _;
 
-/// Generates code for the ink! event structs of the contract.
+/// Generates code for the pro! event structs of the contract.
 #[derive(From)]
 pub struct Events<'a> {
     contract: &'a ir::Contract,
@@ -71,14 +71,14 @@ impl<'a> Events<'a> {
         quote! {
             const _: () = {
                 #no_cross_calling_cfg
-                impl<'a> ::ink_lang::EmitEvent<#storage_ident> for ::ink_lang::EnvAccess<'a, Environment> {
+                impl<'a> ::pro_lang::EmitEvent<#storage_ident> for ::pro_lang::EnvAccess<'a, Environment> {
                     fn emit_event<E>(self, event: E)
                     where
-                        E: Into<<#storage_ident as ::ink_lang::BaseEvent>::Type>,
+                        E: Into<<#storage_ident as ::pro_lang::BaseEvent>::Type>,
                     {
-                        ::ink_env::emit_event::<
+                        ::pro_env::emit_event::<
                             Environment,
-                            <#storage_ident as ::ink_lang::BaseEvent>::Type
+                            <#storage_ident as ::pro_lang::BaseEvent>::Type
                         >(event.into());
                     }
                 }
@@ -100,7 +100,7 @@ impl<'a> Events<'a> {
             .map(|event| event.ident())
             .collect::<Vec<_>>();
         let base_event_ident =
-            proc_macro2::Ident::new("__ink_EventBase", Span::call_site());
+            proc_macro2::Ident::new("__pro_EventBase", Span::call_site());
         quote! {
             #no_cross_calling_cfg
             #[derive(::scale::Encode, ::scale::Decode)]
@@ -110,7 +110,7 @@ impl<'a> Events<'a> {
 
             #no_cross_calling_cfg
             const _: () = {
-                impl ::ink_lang::BaseEvent for #storage_ident {
+                impl ::pro_lang::BaseEvent for #storage_ident {
                     type Type = #base_event_ident;
                 }
             };
@@ -127,27 +127,27 @@ impl<'a> Events<'a> {
             )*
 
             const _: () = {
-                pub enum __ink_UndefinedAmountOfTopics {}
-                impl ::ink_env::topics::EventTopicsAmount for __ink_UndefinedAmountOfTopics {
+                pub enum __pro_UndefinedAmountOfTopics {}
+                impl ::pro_env::topics::EventTopicsAmount for __pro_UndefinedAmountOfTopics {
                     const AMOUNT: usize = 0;
                 }
 
                 #no_cross_calling_cfg
-                impl ::ink_env::Topics for #base_event_ident {
-                    type RemainingTopics = __ink_UndefinedAmountOfTopics;
+                impl ::pro_env::Topics for #base_event_ident {
+                    type RemainingTopics = __pro_UndefinedAmountOfTopics;
 
                     fn topics<E, B>(
                         &self,
-                        builder: ::ink_env::topics::TopicsBuilder<::ink_env::topics::state::Uninit, E, B>,
-                    ) -> <B as ::ink_env::topics::TopicsBuilderBackend<E>>::Output
+                        builder: ::pro_env::topics::TopicsBuilder<::pro_env::topics::state::Uninit, E, B>,
+                    ) -> <B as ::pro_env::topics::TopicsBuilderBackend<E>>::Output
                     where
-                        E: ::ink_env::Environment,
-                        B: ::ink_env::topics::TopicsBuilderBackend<E>,
+                        E: ::pro_env::Environment,
+                        B: ::pro_env::topics::TopicsBuilderBackend<E>,
                     {
                         match self {
                             #(
                                 Self::#event_idents(event) => {
-                                    <#event_idents as ::ink_env::Topics>::topics::<E, B>(event, builder)
+                                    <#event_idents as ::pro_env::Topics>::topics::<E, B>(event, builder)
                                 }
                             )*
                         }
@@ -166,40 +166,40 @@ impl<'a> Events<'a> {
         quote_spanned!(span=>
             const _: () = {
                 #[allow(non_camel_case_types)]
-                pub enum __ink_CheckSatisfied {}
+                pub enum __pro_CheckSatisfied {}
                 pub enum EventTopicsWithinBounds {}
-                impl ::ink_lang::True for __ink_CheckSatisfied {}
+                impl ::pro_lang::True for __pro_CheckSatisfied {}
                 #[doc(hidden)]
                 pub trait CompliesWithTopicLimit {}
-                impl CompliesWithTopicLimit for __ink_CheckSatisfied {}
+                impl CompliesWithTopicLimit for __pro_CheckSatisfied {}
 
                 #[allow(non_camel_case_types)]
-                pub trait __ink_RenameBool {
+                pub trait __pro_RenameBool {
                     type Type;
                 }
-                impl __ink_RenameBool for [(); true as usize] {
-                    type Type = __ink_CheckSatisfied;
+                impl __pro_RenameBool for [(); true as usize] {
+                    type Type = __pro_CheckSatisfied;
                 }
-                impl __ink_RenameBool for [(); false as usize] {
+                impl __pro_RenameBool for [(); false as usize] {
                     type Type = #event_ident;
                 }
 
                 #[allow(non_upper_case_globals)]
-                const __ink_MAX_EVENT_TOPICS: usize = <
-                    <#storage_ident as ::ink_lang::ContractEnv>::Env as ::ink_env::Environment
+                const __pro_MAX_EVENT_TOPICS: usize = <
+                    <#storage_ident as ::pro_lang::ContractEnv>::Env as ::pro_env::Environment
                 >::MAX_EVENT_TOPICS;
 
-                fn __ink_ensure_max_event_topics<T>(_: T)
+                fn __pro_ensure_max_event_topics<T>(_: T)
                 where
-                    T: __ink_RenameBool,
-                    <T as __ink_RenameBool>::Type: CompliesWithTopicLimit,
+                    T: __pro_RenameBool,
+                    <T as __pro_RenameBool>::Type: CompliesWithTopicLimit,
                 {}
-                let _ = __ink_ensure_max_event_topics::<[(); (#len_topics <= __ink_MAX_EVENT_TOPICS) as usize]>;
+                let _ = __pro_ensure_max_event_topics::<[(); (#len_topics <= __pro_MAX_EVENT_TOPICS) as usize]>;
             };
         )
     }
 
-    /// Generates the guard code that protects against having too many topics defined on an ink! event.
+    /// Generates the guard code that protects against having too many topics defined on an pro! event.
     fn generate_topic_guards(&'a self) -> impl Iterator<Item = TokenStream2> + 'a {
         let no_cross_calling_cfg =
             self.generate_code_using::<generator::CrossCallingConflictCfg>();
@@ -242,8 +242,8 @@ impl<'a> Events<'a> {
                             field_ident
                         ).as_bytes(), span);
                     quote_spanned!(span =>
-                        .push_topic::<::ink_env::topics::PrefixedValue<#field_type>>(
-                            &::ink_env::topics::PrefixedValue { value: &self.#field_ident, prefix: #signature }
+                        .push_topic::<::pro_env::topics::PrefixedValue<#field_type>>(
+                            &::pro_env::topics::PrefixedValue { value: &self.#field_ident, prefix: #signature }
                         )
                     )
                 });
@@ -251,30 +251,30 @@ impl<'a> Events<'a> {
             let event_signature_topic = match event.anonymous {
                 true => None,
                 false => Some(quote_spanned!(span=>
-                    .push_topic::<::ink_env::topics::PrefixedValue<[u8; #len_event_signature]>>(
-                        &::ink_env::topics::PrefixedValue { value: #event_signature, prefix: b"" }
+                    .push_topic::<::pro_env::topics::PrefixedValue<[u8; #len_event_signature]>>(
+                        &::pro_env::topics::PrefixedValue { value: #event_signature, prefix: b"" }
                     )
                 ))
             };
             // Anonymous events require 1 fewer topics since they do not include their signature.
             let anonymous_topics_offset = if event.anonymous { 0 } else { 1 };
             let remaining_topics_ty = match len_topics + anonymous_topics_offset {
-                0 => quote_spanned!(span=> ::ink_env::topics::state::NoRemainingTopics),
-                n => quote_spanned!(span=> [::ink_env::topics::state::HasRemainingTopics; #n]),
+                0 => quote_spanned!(span=> ::pro_env::topics::state::NoRemainingTopics),
+                n => quote_spanned!(span=> [::pro_env::topics::state::HasRemainingTopics; #n]),
             };
             quote_spanned!(span =>
                 #no_cross_calling_cfg
                 const _: () = {
-                    impl ::ink_env::Topics for #event_ident {
+                    impl ::pro_env::Topics for #event_ident {
                         type RemainingTopics = #remaining_topics_ty;
 
                         fn topics<E, B>(
                             &self,
-                            builder: ::ink_env::topics::TopicsBuilder<::ink_env::topics::state::Uninit, E, B>,
-                        ) -> <B as ::ink_env::topics::TopicsBuilderBackend<E>>::Output
+                            builder: ::pro_env::topics::TopicsBuilder<::pro_env::topics::state::Uninit, E, B>,
+                        ) -> <B as ::pro_env::topics::TopicsBuilderBackend<E>>::Output
                         where
-                            E: ::ink_env::Environment,
-                            B: ::ink_env::topics::TopicsBuilderBackend<E>,
+                            E: ::pro_env::Environment,
+                            B: ::pro_env::topics::TopicsBuilderBackend<E>,
                         {
                             builder
                                 .build::<Self>()

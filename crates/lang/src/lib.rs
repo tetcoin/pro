@@ -65,7 +65,7 @@ pub use self::{
         EmitEvent,
     },
     traits::{
-        CheckedInkTrait,
+        CheckedProTrait,
         Constructor,
         FnInput,
         FnOutput,
@@ -78,7 +78,7 @@ pub use self::{
     },
 };
 pub use ::static_assertions;
-pub use ink_lang_macro::{
+pub use pro_lang_macro::{
     chain_extension,
     contract,
     test,

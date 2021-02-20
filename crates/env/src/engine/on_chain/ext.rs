@@ -18,7 +18,7 @@
 
 use crate::ReturnFlags;
 use core::marker::PhantomData;
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 macro_rules! define_error_codes {
     (
@@ -196,7 +196,7 @@ mod sys {
         ReturnCode,
     };
 
-    #[link(wasm_import_module = "seal0")]
+    #[lpro(wasm_import_module = "seal0")]
     extern "C" {
         pub fn seal_instantiate(
             init_code_ptr: Ptr32<[u8]>,

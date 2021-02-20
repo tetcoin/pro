@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! The `ink_env` utilities used to interoperate with the contract executor.
+//! The `pro_env` utilities used to interoperate with the contract executor.
 //!
 //! Mainly provides entities to work on a contract's storage
 //! as well as high-level collections on top of those.
@@ -57,7 +57,7 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
 // This extern crate definition is required since otherwise rustc
 // is not recognizing its allocator and panic handler definitions.
 #[cfg(not(feature = "std"))]
-extern crate ink_allocator;
+extern crate pro_allocator;
 
 mod api;
 mod arithmetic;

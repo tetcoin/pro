@@ -28,9 +28,9 @@ fn field_layout<'a>(
         };
         let ty = &field.ty;
         quote! {
-            ::ink_metadata::layout::FieldLayout::new(
+            ::pro_metadata::layout::FieldLayout::new(
                 #ident,
-                <#ty as ::ink_storage::traits::StorageLayout>::layout(__key_ptr),
+                <#ty as ::pro_storage::traits::StorageLayout>::layout(__key_ptr),
             )
         }
     })
@@ -48,10 +48,10 @@ fn storage_layout_struct(s: &synstructure::Structure) -> TokenStream2 {
     let variant: &synstructure::VariantInfo = &s.variants()[0];
     let field_layouts = field_layout(variant);
     s.gen_impl(quote! {
-        gen impl ::ink_storage::traits::StorageLayout for @Self {
-            fn layout(__key_ptr: &mut ::ink_storage::traits::KeyPtr) -> ::ink_metadata::layout::Layout {
-                ::ink_metadata::layout::Layout::Struct(
-                    ::ink_metadata::layout::StructLayout::new(vec![
+        gen impl ::pro_storage::traits::StorageLayout for @Self {
+            fn layout(__key_ptr: &mut ::pro_storage::traits::KeyPtr) -> ::pro_metadata::layout::Layout {
+                ::pro_metadata::layout::Layout::Struct(
+                    ::pro_metadata::layout::StructLayout::new(vec![
                         #(#field_layouts ,)*
                     ])
                 )
@@ -78,8 +78,8 @@ fn storage_layout_enum(s: &synstructure::Structure) -> TokenStream2 {
                 let mut __variant_key_ptr = __key_ptr.clone();
                 let mut __key_ptr = &mut __variant_key_ptr;
                 (
-                    ::ink_metadata::layout::Discriminant::from(#discriminant),
-                    ::ink_metadata::layout::StructLayout::new(vec![
+                    ::pro_metadata::layout::Discriminant::from(#discriminant),
+                    ::pro_metadata::layout::StructLayout::new(vec![
                         #(#field_layouts ,)*
                     ]),
                 )
@@ -87,12 +87,12 @@ fn storage_layout_enum(s: &synstructure::Structure) -> TokenStream2 {
         }
     });
     s.gen_impl(quote! {
-        gen impl ::ink_storage::traits::StorageLayout for @Self {
-            fn layout(__key_ptr: &mut ::ink_storage::traits::KeyPtr) -> ::ink_metadata::layout::Layout {
+        gen impl ::pro_storage::traits::StorageLayout for @Self {
+            fn layout(__key_ptr: &mut ::pro_storage::traits::KeyPtr) -> ::pro_metadata::layout::Layout {
                 let dispatch_key = __key_ptr.advance_by(1);
-                ::ink_metadata::layout::Layout::Enum(
-                    ::ink_metadata::layout::EnumLayout::new(
-                        ::ink_metadata::layout::LayoutKey::from(dispatch_key),
+                ::pro_metadata::layout::Layout::Enum(
+                    ::pro_metadata::layout::EnumLayout::new(
+                        ::pro_metadata::layout::LayoutKey::from(dispatch_key),
                         vec![
                             #(#variant_layouts ,)*
                         ]

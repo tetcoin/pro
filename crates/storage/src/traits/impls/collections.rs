@@ -22,7 +22,7 @@ use crate::traits::{
     PackedLayout,
     SpreadLayout,
 };
-use ink_prelude::{
+use pro_prelude::{
     collections::{
         BTreeMap as StdBTreeMap,
         BTreeSet as StdBTreeSet,
@@ -32,7 +32,7 @@ use ink_prelude::{
     },
     vec::Vec,
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 impl<K, V> SpreadLayout for StdBTreeMap<K, V>
 where

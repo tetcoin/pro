@@ -1,0 +1,5 @@
+error: unknown pro! attribute (path)
+ --> $DIR/S-03-struct-unknown-pro-marker.rs:8:11
+  |
+8 |     #[pro(unknown_or_unsupported)]
+  |           ^^^^^^^^^^^^^^^^^^^^^^

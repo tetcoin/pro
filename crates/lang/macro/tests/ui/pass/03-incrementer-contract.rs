@@ -1,41 +1,41 @@
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract]
+#[pro::contract]
 mod incrementer {
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct Incrementer {
         value: i64,
     }
 
-    #[ink(event)]
+    #[pro(event)]
     pub struct Incremented {
-        #[ink(topic)]
+        #[pro(topic)]
         caller: AccountId,
-        #[ink(topic)]
+        #[pro(topic)]
         by: i32,
     }
 
     impl Incrementer {
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn new(init_value: i32) -> Self {
             Self {
                 value: init_value as i64,
             }
         }
 
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn default() -> Self {
             Self::new(0)
         }
 
-        #[ink(message)]
+        #[pro(message)]
         pub fn inc_by(&mut self, by: i32) {
             let caller = self.env().caller();
             self.env().emit_event(Incremented { caller, by });
             self.value += by as i64;
         }
 
-        #[ink(message)]
+        #[pro(message)]
         pub fn get(&self) -> i64 {
             self.value
         }

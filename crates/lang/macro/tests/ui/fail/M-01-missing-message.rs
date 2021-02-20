@@ -1,12 +1,12 @@
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract]
+#[pro::contract]
 mod missing_message {
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct MissingMessage {}
 
     impl MissingMessage {
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn constructor() -> Self {
             Self {}
         }

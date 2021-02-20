@@ -1,19 +1,19 @@
-use ink_lang as ink;
+use pro_lang as pro;
 
-#[ink::contract]
+#[pro::contract]
 mod noop {
-    #[ink(storage)]
+    #[pro(storage)]
     pub struct Noop {}
 
     pub type NoopAlias = Noop;
 
     impl NoopAlias {
-        #[ink(constructor)]
+        #[pro(constructor)]
         pub fn new() -> Self {
             Self {}
         }
 
-        #[ink(message)]
+        #[pro(message)]
         pub fn noop(&self) {}
     }
 }

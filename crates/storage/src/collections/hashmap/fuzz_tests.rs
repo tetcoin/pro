@@ -17,7 +17,7 @@ use crate::traits::{
     KeyPtr,
     SpreadLayout,
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 use itertools::Itertools;
 
 /// Conducts repeated insert and remove operations into the map by iterating
@@ -76,7 +76,7 @@ fn insert_and_remove(xs: Vec<i32>, inserts_each: u8) -> StorageHashMap<i32, i32>
 
 #[quickcheck]
 fn fuzz_inserts_and_removes(xs: Vec<i32>, inserts_each: u8) {
-    ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+    pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
         let _ = insert_and_remove(xs, inserts_each);
         Ok(())
     })
@@ -87,7 +87,7 @@ fn fuzz_inserts_and_removes(xs: Vec<i32>, inserts_each: u8) {
 /// and asserts that all non-`xth` elements are still in the map.
 #[quickcheck]
 fn fuzz_removes(xs: Vec<i32>, xth: usize) {
-    ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+    pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
         // given
         let xs: Vec<i32> = xs.into_iter().unique().collect();
         let xth = xth.max(1);
@@ -135,7 +135,7 @@ fn fuzz_removes(xs: Vec<i32>, xth: usize) {
 
 #[quickcheck]
 fn fuzz_defrag(xs: Vec<i32>, inserts_each: u8) {
-    ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+    pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
         // Create a `HashMap<i32, i32>` and execute some pseudo-randomized
         // insert/remove operations on it.
         let mut map = insert_and_remove(xs, inserts_each);

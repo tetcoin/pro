@@ -24,13 +24,13 @@ use crate::{
         SpreadLayout,
     },
 };
-use ink_prelude::vec::Vec;
-use ink_primitives::Key;
+use pro_prelude::vec::Vec;
+use pro_primitives::Key;
 
 #[cfg(feature = "std")]
 const _: () = {
     use crate::traits::StorageLayout;
-    use ink_metadata::layout::{
+    use pro_metadata::layout::{
         CellLayout,
         Layout,
         LayoutKey,
@@ -47,16 +47,16 @@ const _: () = {
         }
     }
 
-    impl<T> scale_info::TypeInfo for StorageBox<T>
+    impl<T> tetsy_scale_info::TypeInfo for StorageBox<T>
     where
         T: SpreadLayout + 'static,
     {
         type Identity = Self;
 
-        fn type_info() -> scale_info::Type {
-            scale_info::Type::builder()
+        fn type_info() -> tetsy_scale_info::Type {
+            tetsy_scale_info::Type::builder()
                 .path(
-                    scale_info::Path::from_segments(vec!["ink_storage", "alloc", "Box"])
+                    tetsy_scale_info::Path::from_segments(vec!["pro_storage", "alloc", "Box"])
                         .expect("encountered invalid Rust path"),
                 )
                 // Unfortunately we cannot encode the type parameters of the box since they
@@ -65,9 +65,9 @@ const _: () = {
                 // Until we found a solution to this problem we cannot uncomment the below
                 // line of code:
                 //
-                // .type_params(vec![scale_info::MetaType::new::<T>()])
+                // .type_params(vec![tetsy_scale_info::MetaType::new::<T>()])
                 .composite(
-                    scale_info::build::Fields::named()
+                    tetsy_scale_info::build::Fields::named()
                         .field_of::<DynamicAllocation>("allocation", "DynamicAllocation"),
                 )
         }

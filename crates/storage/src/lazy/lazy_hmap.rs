@@ -39,11 +39,11 @@ use core::{
     marker::PhantomData,
     ptr::NonNull,
 };
-use ink_env::hash::{
+use pro_env::hash::{
     CryptoHash,
     HashOutput,
 };
-use ink_prelude::{
+use pro_prelude::{
     borrow::ToOwned,
     boxed::Box,
     collections::btree_map::{
@@ -52,7 +52,7 @@ use ink_prelude::{
         OccupiedEntry as BTreeMapOccupiedEntry,
     },
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 /// The map for the contract storage entries.
 ///
@@ -184,7 +184,7 @@ where
 
 #[test]
 fn debug_impl_works() {
-    use ink_env::hash::Blake2x256;
+    use pro_env::hash::Blake2x256;
     let mut hmap = <LazyHashMap<char, i32, Blake2x256>>::new();
     // Empty hmap.
     assert_eq!(
@@ -223,14 +223,14 @@ const _: () = {
         LayoutCryptoHasher,
         StorageLayout,
     };
-    use ink_metadata::layout::{
+    use pro_metadata::layout::{
         CellLayout,
         HashLayout,
         HashingStrategy,
         Layout,
         LayoutKey,
     };
-    use scale_info::TypeInfo;
+    use tetsy_scale_info::TypeInfo;
 
     impl<K, V, H> StorageLayout for LazyHashMap<K, V, H>
     where
@@ -244,7 +244,7 @@ const _: () = {
                 LayoutKey::from(key_ptr.advance_by(1)),
                 HashingStrategy::new(
                     <H as LayoutCryptoHasher>::crypto_hasher(),
-                    b"ink hashmap".to_vec(),
+                    b"pro hashmap".to_vec(),
                     Vec::new(),
                 ),
                 Layout::Cell(CellLayout::new::<V>(LayoutKey::from(
@@ -513,7 +513,7 @@ where
             value_key: key,
         };
         let mut output = <H as HashOutput>::Type::default();
-        ink_env::hash_encoded::<H, KeyPair<Q>>(&key_pair, &mut output);
+        pro_env::hash_encoded::<H, KeyPair<Q>>(&key_pair, &mut output);
         output.into()
     }
 
@@ -641,7 +641,7 @@ where
         } else {
             // The type does not require deep clean-up so we can simply clean-up
             // its associated storage cell and be done without having to load it first.
-            ink_env::clear_contract_storage(&root_key);
+            pro_env::clear_contract_storage(&root_key);
         }
     }
 
@@ -977,11 +977,11 @@ mod tests {
         KeyPtr,
         SpreadLayout,
     };
-    use ink_env::hash::{
+    use pro_env::hash::{
         Blake2x256,
         Sha2x256,
     };
-    use ink_primitives::Key;
+    use pro_primitives::Key;
 
     /// Asserts that the cached entries of the given `imap` is equal to the `expected` slice.
     fn assert_cached_entries<H>(
@@ -1271,8 +1271,8 @@ mod tests {
     }
 
     #[test]
-    fn spread_layout_works() -> ink_env::Result<()> {
-        ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+    fn spread_layout_works() -> pro_env::Result<()> {
+        pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
             let mut hmap = new_hmap();
             let nothing_changed = &[
                 (1, StorageEntry::new(Some(b'A'), EntryState::Mutated)),

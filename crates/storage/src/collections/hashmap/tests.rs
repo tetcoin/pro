@@ -20,7 +20,7 @@ use crate::{
     },
     Lazy,
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 /// Returns always the same `KeyPtr`.
 fn key_ptr() -> KeyPtr {
@@ -289,8 +289,8 @@ fn defrag_works() {
 }
 
 #[test]
-fn spread_layout_push_pull_works() -> ink_env::Result<()> {
-    ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+fn spread_layout_push_pull_works() -> pro_env::Result<()> {
+    pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
         let hmap1 = filled_hmap();
         push_hmap(&hmap1);
         // Load the pushed storage hmap into another instance and check that
@@ -304,7 +304,7 @@ fn spread_layout_push_pull_works() -> ink_env::Result<()> {
 #[test]
 #[should_panic(expected = "storage entry was empty")]
 fn spread_layout_clear_works() {
-    ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+    pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
         let hmap1 = filled_hmap();
         let root_key = Key::from([0x42; 32]);
         SpreadLayout::push_spread(&hmap1, &mut KeyPtr::from(root_key));
@@ -325,7 +325,7 @@ fn spread_layout_clear_works() {
 
 #[test]
 fn storage_is_cleared_completely_after_pull_lazy() {
-    ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+    pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
         // given
         let root_key = Key::from([0x42; 32]);
         let lazy_hmap = Lazy::new(filled_hmap());
@@ -338,12 +338,12 @@ fn storage_is_cleared_completely_after_pull_lazy() {
         SpreadLayout::clear_spread(&pulled_hmap, &mut KeyPtr::from(root_key));
 
         // then
-        let contract_id = ink_env::test::get_current_contract_account_id::<
-            ink_env::DefaultEnvironment,
+        let contract_id = pro_env::test::get_current_contract_account_id::<
+            pro_env::DefaultEnvironment,
         >()
         .expect("Cannot get contract id");
-        let used_cells = ink_env::test::count_used_storage_cells::<
-            ink_env::DefaultEnvironment,
+        let used_cells = pro_env::test::count_used_storage_cells::<
+            pro_env::DefaultEnvironment,
         >(&contract_id)
         .expect("used cells must be returned");
         assert_eq!(used_cells, 0);
@@ -356,7 +356,7 @@ fn storage_is_cleared_completely_after_pull_lazy() {
 #[test]
 #[should_panic(expected = "storage entry was empty")]
 fn drop_works() {
-    ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+    pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
         let root_key = Key::from([0x42; 32]);
 
         // if the setup panics it should not cause the test to pass
@@ -370,12 +370,12 @@ fn drop_works() {
         });
         assert!(setup_result.is_ok(), "setup should not panic");
 
-        let contract_id = ink_env::test::get_current_contract_account_id::<
-            ink_env::DefaultEnvironment,
+        let contract_id = pro_env::test::get_current_contract_account_id::<
+            pro_env::DefaultEnvironment,
         >()
         .expect("Cannot get contract id");
-        let used_cells = ink_env::test::count_used_storage_cells::<
-            ink_env::DefaultEnvironment,
+        let used_cells = pro_env::test::count_used_storage_cells::<
+            pro_env::DefaultEnvironment,
         >(&contract_id)
         .expect("used cells must be returned");
         assert_eq!(used_cells, 0);

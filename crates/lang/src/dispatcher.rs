@@ -24,12 +24,12 @@ use core::{
     any::TypeId,
     mem::ManuallyDrop,
 };
-use ink_env::{
+use pro_env::{
     Environment,
     ReturnFlags,
 };
-use ink_primitives::Key;
-use ink_storage::{
+use pro_primitives::Key;
+use pro_storage::{
     alloc,
     alloc::ContractPhase,
     traits::{
@@ -125,7 +125,7 @@ where
         alloc::finalize();
     }
     if TypeId::of::<<M as FnOutput>::Output>() != TypeId::of::<()>() {
-        ink_env::return_value::<<M as FnOutput>::Output>(ReturnFlags::default(), &result)
+        pro_env::return_value::<<M as FnOutput>::Output>(ReturnFlags::default(), &result)
     }
     Ok(())
 }
@@ -141,7 +141,7 @@ pub fn deny_payment<E>() -> Result<()>
 where
     E: Environment,
 {
-    let transferred = ink_env::transferred_balance::<E>()
+    let transferred = pro_env::transferred_balance::<E>()
         .expect("encountered error while querying transferred balance");
     if transferred != <E as Environment>::Balance::from(0u32) {
         return Err(DispatchError::PaidUnpayableMessage)
@@ -185,7 +185,7 @@ where
         alloc::finalize();
     }
     if TypeId::of::<<M as FnOutput>::Output>() != TypeId::of::<()>() {
-        ink_env::return_value::<<M as FnOutput>::Output>(ReturnFlags::default(), &result)
+        pro_env::return_value::<<M as FnOutput>::Output>(ReturnFlags::default(), &result)
     }
     Ok(())
 }

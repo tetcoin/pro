@@ -3,7 +3,7 @@
 # Run this script from the workspace root!
 #
 # This script iterates through all examples and runs the most important
-# actions performed on an ink! smart contract:
+# actions performed on an pro! smart contract:
 #
 # - compile to a Wasm blob using `no_std` environment
 # - run offchain tests

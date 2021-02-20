@@ -105,7 +105,7 @@ where
     }
 }
 
-impl<T> ink_prelude::borrow::Borrow<T> for StorageBox<T>
+impl<T> pro_prelude::borrow::Borrow<T> for StorageBox<T>
 where
     T: SpreadLayout,
 {
@@ -114,7 +114,7 @@ where
     }
 }
 
-impl<T> ink_prelude::borrow::BorrowMut<T> for StorageBox<T>
+impl<T> pro_prelude::borrow::BorrowMut<T> for StorageBox<T>
 where
     T: SpreadLayout,
 {

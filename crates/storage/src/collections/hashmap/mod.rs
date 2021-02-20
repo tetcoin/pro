@@ -21,7 +21,7 @@ mod storage;
 #[cfg(test)]
 mod tests;
 
-#[cfg(all(test, feature = "ink-fuzz-tests"))]
+#[cfg(all(test, feature = "pro-fuzz-tests"))]
 mod fuzz_tests;
 
 pub use self::iter::{
@@ -45,13 +45,13 @@ use core::{
     borrow::Borrow,
     cmp::Eq,
 };
-use ink_env::hash::{
+use pro_env::hash::{
     Blake2x256,
     CryptoHash,
     HashOutput,
 };
-use ink_prelude::borrow::ToOwned;
-use ink_primitives::Key;
+use pro_prelude::borrow::ToOwned;
+use pro_primitives::Key;
 
 /// The index type within a hashmap.
 ///
@@ -97,7 +97,7 @@ where
 ///
 /// Stores the value as well as the index to its associated key.
 #[derive(Debug, scale::Encode, scale::Decode)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+#[cfg_attr(feature = "std", derive(tetsy_scale_info::TypeInfo))]
 struct ValueEntry<V> {
     /// The value stored in this entry.
     value: V,

@@ -106,7 +106,7 @@ where
 
     /// Returns the amount of `Children` objects stored in the vector.
     #[allow(dead_code)]
-    #[cfg(all(test, feature = "ink-fuzz-tests"))]
+    #[cfg(all(test, feature = "pro-fuzz-tests"))]
     pub fn children_count(&self) -> u32 {
         self.children.len()
     }

@@ -18,15 +18,15 @@ use crate::traits::{
     PackedLayout,
     SpreadLayout,
 };
-use ink_env::{
+use pro_env::{
     AccountId,
     Hash,
 };
-use ink_prelude::{
+use pro_prelude::{
     boxed::Box,
     string::String,
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 macro_rules! impl_layout_for_primitive {
     ( $($ty:ty),* $(,)? ) => {
@@ -241,8 +241,8 @@ where
 #[cfg(test)]
 mod tests {
     use crate::push_pull_works_for_primitive;
-    use ink_env::AccountId;
-    use ink_primitives::Key;
+    use pro_env::AccountId;
+    use pro_primitives::Key;
 
     push_pull_works_for_primitive!(bool, [false, true]);
     push_pull_works_for_primitive!(

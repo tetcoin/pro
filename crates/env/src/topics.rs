@@ -187,7 +187,7 @@ impl EventTopicsAmount for state::NoRemainingTopics {
 
 /// Implemented by event types to guide the event topic serialization using the topics builder.
 ///
-/// Normally this trait should be implemented automatically via the ink! codegen.
+/// Normally this trait should be implemented automatically via the pro! codegen.
 pub trait Topics {
     /// Type state indicating how many event topics are to be expected by the topics builder.
     type RemainingTopics: EventTopicsAmount;

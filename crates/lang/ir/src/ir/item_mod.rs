@@ -28,39 +28,39 @@ use syn::{
     token,
 };
 
-/// The ink! module.
+/// The pro! module.
 ///
-/// This is the root of all ink! smart contracts and is defined similarly to
+/// This is the root of all pro! smart contracts and is defined similarly to
 /// a normal Rust module annotated with
-/// `#[ink::contract( /* optional configuration */ )]` attribute.
+/// `#[pro::contract( /* optional configuration */ )]` attribute.
 ///
-/// It contains ink! specific items as well as normal Rust items.
+/// It contains pro! specific items as well as normal Rust items.
 ///
 /// # Example
 ///
 /// ```
-/// // #[ink::contract] <-- this line belongs to the ink! configuration!
+/// // #[pro::contract] <-- this line belongs to the pro! configuration!
 /// # use core::convert::TryFrom;
-/// # use ink_lang_ir as ir;
+/// # use pro_lang_ir as ir;
 /// # <ir::ItemMod as TryFrom<syn::ItemMod>>::try_from(syn::parse_quote! {
 /// mod my_contract {
-///     #[ink(storage)]
+///     #[pro(storage)]
 ///     pub struct MyStorage {
 ///         /* storage fields */
 ///     }
 ///
-///     #[ink(event)]
+///     #[pro(event)]
 ///     pub struct MyEvent {
 ///         /* event fields */
 ///     }
 ///
 ///     impl MyStorage {
-///         #[ink(constructor)]
+///         #[pro(constructor)]
 ///         pub fn my_constructor() -> Self {
 ///             /* constructor initialization */
 ///         }
 ///
-///         #[ink(message)]
+///         #[pro(message)]
 ///         pub fn my_message(&self) {
 ///             /* message statements */
 ///         }
@@ -76,7 +76,7 @@ use syn::{
 ///
 /// # Developer Note
 ///
-/// Structurally the ink! `Module` mirrors an inline Rust module, for example:
+/// Structurally the pro! `Module` mirrors an inline Rust module, for example:
 ///
 /// ```
 /// mod rust_module {
@@ -96,32 +96,32 @@ pub struct ItemMod {
 }
 
 impl ItemMod {
-    /// Ensures that the ink! storage struct is not missing and that there are
-    /// not multiple ink! storage struct definitions for the given slice of items.
+    /// Ensures that the pro! storage struct is not missing and that there are
+    /// not multiple pro! storage struct definitions for the given slice of items.
     fn ensure_storage_struct_quantity(
         module_span: Span,
         items: &[ir::Item],
     ) -> Result<(), syn::Error> {
         let storage_iter = items
             .iter()
-            .filter(|item| matches!(item, ir::Item::Ink(ir::InkItem::Storage(_))));
+            .filter(|item| matches!(item, ir::Item::Pro(ir::ProItem::Storage(_))));
         if storage_iter.clone().next().is_none() {
-            return Err(format_err!(module_span, "missing ink! storage struct",))
+            return Err(format_err!(module_span, "missing pro! storage struct",))
         }
         if storage_iter.clone().count() >= 2 {
             let mut error = format_err!(
                 module_span,
-                "encountered multiple ink! storage structs, expected exactly one"
+                "encountered multiple pro! storage structs, expected exactly one"
             );
             for storage in storage_iter {
-                error.combine(format_err!(storage, "ink! storage struct here"))
+                error.combine(format_err!(storage, "pro! storage struct here"))
             }
             return Err(error)
         }
         Ok(())
     }
 
-    /// Ensures that the given slice of items contains at least one ink! message.
+    /// Ensures that the given slice of items contains at least one pro! message.
     fn ensure_contains_message(
         module_span: Span,
         items: &[ir::Item],
@@ -130,7 +130,7 @@ impl ItemMod {
             .iter()
             .filter_map(|item| {
                 match item {
-                    ir::Item::Ink(ir::InkItem::ImplBlock(item_impl)) => {
+                    ir::Item::Pro(ir::ProItem::ImplBlock(item_impl)) => {
                         Some(item_impl.iter_messages())
                     }
                     _ => None,
@@ -138,12 +138,12 @@ impl ItemMod {
             })
             .any(|mut messages| messages.next().is_some());
         if !found_message {
-            return Err(format_err!(module_span, "missing ink! message"))
+            return Err(format_err!(module_span, "missing pro! message"))
         }
         Ok(())
     }
 
-    /// Ensures that the given slice of items contains at least one ink! constructor.
+    /// Ensures that the given slice of items contains at least one pro! constructor.
     fn ensure_contains_constructor(
         module_span: Span,
         items: &[ir::Item],
@@ -152,7 +152,7 @@ impl ItemMod {
             .iter()
             .filter_map(|item| {
                 match item {
-                    ir::Item::Ink(ir::InkItem::ImplBlock(item_impl)) => {
+                    ir::Item::Pro(ir::ProItem::ImplBlock(item_impl)) => {
                         Some(item_impl.iter_constructors())
                     }
                     _ => None,
@@ -160,16 +160,16 @@ impl ItemMod {
             })
             .any(|mut constructors| constructors.next().is_some());
         if !found_constructor {
-            return Err(format_err!(module_span, "missing ink! constructor"))
+            return Err(format_err!(module_span, "missing pro! constructor"))
         }
         Ok(())
     }
 
-    /// Ensures that no ink! message or constructor selectors are overlapping.
+    /// Ensures that no pro! message or constructor selectors are overlapping.
     ///
     /// # Note
     ///
-    /// We differentiate between ink! message and ink! constructor selectors
+    /// We differentiate between pro! message and pro! constructor selectors
     /// since they are dispatched independently from each other and thus are
     /// allowed to have overlapping selectors.
     fn ensure_no_overlapping_selectors(items: &[ir::Item]) -> Result<(), syn::Error> {
@@ -177,8 +177,8 @@ impl ItemMod {
         let mut constructors = <HashMap<ir::Selector, &ir::Constructor>>::new();
         for item_impl in items
             .iter()
-            .filter_map(ir::Item::map_ink_item)
-            .filter_map(ir::InkItem::filter_map_impl_block)
+            .filter_map(ir::Item::map_pro_item)
+            .filter_map(ir::ProItem::filter_map_impl_block)
         {
             use std::collections::hash_map::Entry;
             /// Kind is either `"message"` or `"constructor"`.
@@ -191,16 +191,16 @@ impl ItemMod {
                 use crate::error::ExtError as _;
                 format_err!(
                     second_span,
-                    "encountered ink! {}s with overlapping selectors (= {:02X?})\n\
-                     hint: use #[ink(selector = \"0x...\")] on the callable or \
-                     #[ink(namespace = \"...\")] on the implementation block to \
+                    "encountered pro! {}s with overlapping selectors (= {:02X?})\n\
+                     hint: use #[pro(selector = \"0x...\")] on the callable or \
+                     #[pro(namespace = \"...\")] on the implementation block to \
                      disambiguate overlapping selectors.",
                     kind,
                     selector.as_bytes(),
                 )
                 .into_combine(format_err!(
                     first_span,
-                    "first ink! {} with overlapping selector here",
+                    "first pro! {} with overlapping selector here",
                     kind,
                 ))
             }
@@ -246,26 +246,26 @@ impl TryFrom<syn::ItemMod> for ItemMod {
 
     fn try_from(module: syn::ItemMod) -> Result<Self, Self::Error> {
         let module_span = module.span();
-        idents_lint::ensure_no_ink_identifiers(&module)?;
+        idents_lint::ensure_no_pro_identifiers(&module)?;
         let (brace, items) = match module.content {
             Some((brace, items)) => (brace, items),
             None => {
                 return Err(format_err_spanned!(
                     module,
-                    "out-of-line ink! modules are not supported, use `#[ink::contract] mod name {{ ... }}`",
+                    "out-of-line pro! modules are not supported, use `#[pro::contract] mod name {{ ... }}`",
                 ))
             }
         };
-        let (ink_attrs, other_attrs) = ir::partition_attributes(module.attrs)?;
-        if !ink_attrs.is_empty() {
+        let (pro_attrs, other_attrs) = ir::partition_attributes(module.attrs)?;
+        if !pro_attrs.is_empty() {
             let mut error = format_err!(
                 module_span,
-                "encountered invalid ink! attributes on ink! module"
+                "encountered invalid pro! attributes on pro! module"
             );
-            for ink_attr in ink_attrs {
+            for pro_attr in pro_attrs {
                 error.combine(format_err!(
-                    ink_attr.span(),
-                    "invalid ink! attribute on module"
+                    pro_attr.span(),
+                    "invalid pro! attribute on module"
                 ))
             }
             return Err(error)
@@ -290,7 +290,7 @@ impl TryFrom<syn::ItemMod> for ItemMod {
 }
 
 impl quote::ToTokens for ItemMod {
-    /// We mainly implement this trait for ink! module to have a derived
+    /// We mainly implement this trait for pro! module to have a derived
     /// [`Spanned`](`syn::spanned::Spanned`) implementation for it.
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         tokens.append_all(
@@ -313,68 +313,68 @@ impl quote::ToTokens for ItemMod {
 }
 
 impl ItemMod {
-    /// Returns the identifier of the ink! module.
+    /// Returns the identifier of the pro! module.
     pub fn ident(&self) -> &Ident {
         &self.ident
     }
 
-    /// Returns the storage struct definition for this ink! module.
+    /// Returns the storage struct definition for this pro! module.
     ///
     /// # Note
     ///
     /// The storage definition is the struct that has been annotated with
-    /// `#[ink(storage)]`. This struct is required to be defined in the root
-    /// of the ink! inline module.
+    /// `#[pro(storage)]`. This struct is required to be defined in the root
+    /// of the pro! inline module.
     ///
     /// # Panics
     ///
-    /// If zero or multiple `#[ink(storage)]` annotated structs were found in
-    /// the ink! module. This can be expected to never happen since upon
-    /// construction of an ink! module it is asserted that exactly one
-    /// `#[ink(storage)]` struct exists.
+    /// If zero or multiple `#[pro(storage)]` annotated structs were found in
+    /// the pro! module. This can be expected to never happen since upon
+    /// construction of an pro! module it is asserted that exactly one
+    /// `#[pro(storage)]` struct exists.
     pub fn storage(&self) -> &ir::Storage {
-        let mut iter = IterInkItems::new(self)
-            .filter_map(|ink_item| ink_item.filter_map_storage_item());
+        let mut iter = IterProItems::new(self)
+            .filter_map(|pro_item| pro_item.filter_map_storage_item());
         let storage = iter
             .next()
-            .expect("encountered ink! module without a storage struct");
+            .expect("encountered pro! module without a storage struct");
         assert!(
             iter.next().is_none(),
-            "encountered multiple storage structs in ink! module"
+            "encountered multiple storage structs in pro! module"
         );
         storage
     }
 
-    /// Returns all (ink! and non-ink! specific) item definitions of the ink! inline module.
+    /// Returns all (pro! and non-pro! specific) item definitions of the pro! inline module.
     pub fn items(&self) -> &[ir::Item] {
         self.items.as_slice()
     }
 
-    /// Returns an iterator yielding all ink! implementation blocks.
+    /// Returns an iterator yielding all pro! implementation blocks.
     ///
     /// # Note
     ///
-    /// An ink! implementation block can be either an inherent `impl` block
+    /// An pro! implementation block can be either an inherent `impl` block
     /// directly defined for the contract's storage struct if it includes at
-    /// least one `#[ink(message)]` or `#[ink(constructor)]` annotation, e.g.:
+    /// least one `#[pro(message)]` or `#[pro(constructor)]` annotation, e.g.:
     ///
     /// ```
     /// # use core::convert::TryFrom;
-    /// # use ink_lang_ir as ir;
+    /// # use pro_lang_ir as ir;
     /// # <ir::ItemMod as TryFrom<syn::ItemMod>>::try_from(syn::parse_quote! {
     /// # mod my_module {
-    /// # #[ink(storage)]
+    /// # #[pro(storage)]
     /// # pub struct MyStorage {
     /// #     /* storage fields */
     /// # }
     /// #
     /// impl MyStorage {
-    /// #   #[ink(constructor)]
+    /// #   #[pro(constructor)]
     /// #   pub fn my_constructor() -> Self {
     /// #       /* constructor implementation */
     /// #   }
     /// #
-    ///     #[ink(message)]
+    ///     #[pro(message)]
     ///     pub fn my_message(&self) {
     ///         /* message implementation */
     ///     }
@@ -383,21 +383,21 @@ impl ItemMod {
     /// ```
     ///
     /// Also an implementation block can be defined as a trait implementation
-    /// for the ink! storage struct using the `#[ink(impl)]` annotation even
-    /// if none of its interior items have any ink! specific attributes on them,
+    /// for the pro! storage struct using the `#[pro(impl)]` annotation even
+    /// if none of its interior items have any pro! specific attributes on them,
     /// e.g.:
     ///
     /// ```
     /// # use core::convert::TryFrom;
-    /// # use ink_lang_ir as ir;
+    /// # use pro_lang_ir as ir;
     /// # <ir::ItemMod as TryFrom<syn::ItemMod>>::try_from(syn::parse_quote! {
     /// # mod my_module {
-    /// # #[ink(storage)]
+    /// # #[pro(storage)]
     /// # pub struct MyStorage {
     /// #     /* storage fields */
     /// # }
     /// #
-    /// #[ink(impl)]
+    /// #[pro(impl)]
     /// impl MyStorage {
     ///     fn my_method(&self) -> i32 {
     ///         /* method implementation */
@@ -405,12 +405,12 @@ impl ItemMod {
     /// }
     /// #
     /// # impl MyStorage {
-    /// #   #[ink(constructor)]
+    /// #   #[pro(constructor)]
     /// #   pub fn my_constructor() -> Self {
     /// #       /* constructor implementation */
     /// #   }
     /// #
-    /// #   #[ink(message)]
+    /// #   #[pro(message)]
     /// #   pub fn my_message(&self) {
     /// #       /* message implementation */
     /// #   }
@@ -421,45 +421,45 @@ impl ItemMod {
         IterItemImpls::new(self)
     }
 
-    /// Returns an iterator yielding all event definitions in this ink! module.
+    /// Returns an iterator yielding all event definitions in this pro! module.
     pub fn events(&self) -> IterEvents {
         IterEvents::new(self)
     }
 
-    /// Returns all non-ink! attributes of the ink! module.
+    /// Returns all non-pro! attributes of the pro! module.
     pub fn attrs(&self) -> &[syn::Attribute] {
         &self.attrs
     }
 
-    /// Returns the visibility of the ink! module.
+    /// Returns the visibility of the pro! module.
     pub fn vis(&self) -> &syn::Visibility {
         &self.vis
     }
 }
 
-/// Iterator yielding ink! item definitions of the ink! smart contract.
-pub struct IterInkItems<'a> {
+/// Iterator yielding pro! item definitions of the pro! smart contract.
+pub struct IterProItems<'a> {
     items_iter: core::slice::Iter<'a, ir::Item>,
 }
 
-impl<'a> IterInkItems<'a> {
-    /// Creates a new ink! module items iterator.
-    fn new(ink_module: &'a ItemMod) -> Self {
+impl<'a> IterProItems<'a> {
+    /// Creates a new pro! module items iterator.
+    fn new(pro_module: &'a ItemMod) -> Self {
         Self {
-            items_iter: ink_module.items.iter(),
+            items_iter: pro_module.items.iter(),
         }
     }
 }
 
-impl<'a> Iterator for IterInkItems<'a> {
-    type Item = &'a ir::InkItem;
+impl<'a> Iterator for IterProItems<'a> {
+    type Item = &'a ir::ProItem;
 
     fn next(&mut self) -> Option<Self::Item> {
         'repeat: loop {
             match self.items_iter.next() {
                 None => return None,
                 Some(item) => {
-                    if let Some(event) = item.map_ink_item() {
+                    if let Some(event) = item.map_pro_item() {
                         return Some(event)
                     }
                     continue 'repeat
@@ -469,17 +469,17 @@ impl<'a> Iterator for IterInkItems<'a> {
     }
 }
 
-/// Iterator yielding all ink! event definitions within the ink!
+/// Iterator yielding all pro! event definitions within the pro!
 /// [`ItemMod`](`crate::ir::ItemMod`).
 pub struct IterEvents<'a> {
-    items_iter: IterInkItems<'a>,
+    items_iter: IterProItems<'a>,
 }
 
 impl<'a> IterEvents<'a> {
-    /// Creates a new ink! events iterator.
-    fn new(ink_module: &'a ItemMod) -> Self {
+    /// Creates a new pro! events iterator.
+    fn new(pro_module: &'a ItemMod) -> Self {
         Self {
-            items_iter: IterInkItems::new(ink_module),
+            items_iter: IterProItems::new(pro_module),
         }
     }
 }
@@ -491,8 +491,8 @@ impl<'a> Iterator for IterEvents<'a> {
         'repeat: loop {
             match self.items_iter.next() {
                 None => return None,
-                Some(ink_item) => {
-                    if let Some(event) = ink_item.filter_map_event_item() {
+                Some(pro_item) => {
+                    if let Some(event) = pro_item.filter_map_event_item() {
                         return Some(event)
                     }
                     continue 'repeat
@@ -502,17 +502,17 @@ impl<'a> Iterator for IterEvents<'a> {
     }
 }
 
-/// Iterator yielding all ink! implementation block definitions within the ink!
+/// Iterator yielding all pro! implementation block definitions within the pro!
 /// [`ItemMod`](`crate::ir::ItemMod`).
 pub struct IterItemImpls<'a> {
-    items_iter: IterInkItems<'a>,
+    items_iter: IterProItems<'a>,
 }
 
 impl<'a> IterItemImpls<'a> {
-    /// Creates a new ink! implementation blocks iterator.
-    fn new(ink_module: &'a ItemMod) -> Self {
+    /// Creates a new pro! implementation blocks iterator.
+    fn new(pro_module: &'a ItemMod) -> Self {
         Self {
-            items_iter: IterInkItems::new(ink_module),
+            items_iter: IterProItems::new(pro_module),
         }
     }
 }
@@ -524,8 +524,8 @@ impl<'a> Iterator for IterItemImpls<'a> {
         'repeat: loop {
             match self.items_iter.next() {
                 None => return None,
-                Some(ink_item) => {
-                    if let Some(event) = ink_item.filter_map_impl_block() {
+                Some(pro_item) => {
+                    if let Some(event) = pro_item.filter_map_impl_block() {
                         return Some(event)
                     }
                     continue 'repeat
@@ -545,38 +545,38 @@ mod tests {
         let item_mods: Vec<syn::ItemMod> = vec![
             syn::parse_quote! {
                 mod minimal {
-                    #[ink(storage)]
+                    #[pro(storage)]
                     pub struct Minimal {}
 
                     impl Minimal {
-                        #[ink(constructor)]
+                        #[pro(constructor)]
                         pub fn new() -> Self {}
-                        #[ink(message)]
+                        #[pro(message)]
                         pub fn minimal_message(&self) {}
                     }
                 }
             },
             syn::parse_quote! {
                 mod flipper {
-                    #[ink(storage)]
+                    #[pro(storage)]
                     pub struct Flipper {
                         value: bool,
                     }
 
                     impl Default for Flipper {
-                        #[ink(constructor)]
+                        #[pro(constructor)]
                         fn default() -> Self {
                             Self { value: false }
                         }
                     }
 
                     impl Flipper {
-                        #[ink(message)]
+                        #[pro(message)]
                         pub fn flip(&mut self) {
                             self.value = !self.value
                         }
 
-                        #[ink(message)]
+                        #[pro(message)]
                         pub fn get(&self) -> bool {
                             self.value
                         }
@@ -603,14 +603,14 @@ mod tests {
             syn::parse_quote! {
                 mod my_module {
                     impl MyStorage {
-                        #[ink(constructor)]
+                        #[pro(constructor)]
                         pub fn my_constructor() -> Self {}
-                        #[ink(message)]
+                        #[pro(message)]
                         pub fn my_message(&self) {}
                     }
                 }
             },
-            "missing ink! storage struct",
+            "missing pro! storage struct",
         )
     }
 
@@ -619,19 +619,19 @@ mod tests {
         assert_fail(
             syn::parse_quote! {
                 mod my_module {
-                    #[ink(storage)]
+                    #[pro(storage)]
                     pub struct MyFirstStorage {}
-                    #[ink(storage)]
+                    #[pro(storage)]
                     pub struct MySecondStorage {}
                     impl MyFirstStorage {
-                        #[ink(constructor)]
+                        #[pro(constructor)]
                         pub fn my_constructor() -> Self {}
-                        #[ink(message)]
+                        #[pro(message)]
                         pub fn my_message(&self) {}
                     }
                 }
             },
-            "encountered multiple ink! storage structs, expected exactly one",
+            "encountered multiple pro! storage structs, expected exactly one",
         )
     }
 
@@ -640,16 +640,16 @@ mod tests {
         assert_fail(
             syn::parse_quote! {
                 mod my_module {
-                    #[ink(storage)]
+                    #[pro(storage)]
                     pub struct MyStorage {}
 
                     impl MyStorage {
-                        #[ink(message)]
+                        #[pro(message)]
                         pub fn my_message(&self) {}
                     }
                 }
             },
-            "missing ink! constructor",
+            "missing pro! constructor",
         )
     }
 
@@ -658,16 +658,16 @@ mod tests {
         assert_fail(
             syn::parse_quote! {
                 mod my_module {
-                    #[ink(storage)]
+                    #[pro(storage)]
                     pub struct MyStorage {}
 
                     impl MyStorage {
-                        #[ink(constructor)]
+                        #[pro(constructor)]
                         pub fn my_constructor() -> Self {}
                     }
                 }
             },
-            "missing ink! message",
+            "missing pro! message",
         )
     }
 
@@ -677,7 +677,7 @@ mod tests {
             syn::parse_quote! {
                 mod my_module;
             },
-            "out-of-line ink! modules are not supported, use `#[ink::contract] mod name { ... }`",
+            "out-of-line pro! modules are not supported, use `#[pro::contract] mod name { ... }`",
         )
     }
 
@@ -685,19 +685,19 @@ mod tests {
     fn conflicting_attributes_fails() {
         assert_fail(
             syn::parse_quote! {
-                #[ink(namespace = "my_namespace")]
+                #[pro(namespace = "my_namespace")]
                 mod my_module {
-                    #[ink(storage)]
+                    #[pro(storage)]
                     pub struct MyStorage {}
                     impl MyStorage {
-                        #[ink(constructor)]
+                        #[pro(constructor)]
                         pub fn my_constructor() -> Self {}
-                        #[ink(message)]
+                        #[pro(message)]
                         pub fn my_message(&self) {}
                     }
                 }
             },
-            "encountered invalid ink! attributes on ink! module",
+            "encountered invalid pro! attributes on pro! module",
         )
     }
 
@@ -706,26 +706,26 @@ mod tests {
         assert_fail(
             syn::parse_quote! {
                 mod my_module {
-                    #[ink(storage)]
+                    #[pro(storage)]
                     pub struct MyStorage {}
 
                     impl MyStorage {
-                        #[ink(constructor)]
+                        #[pro(constructor)]
                         pub fn my_constructor() -> Self {}
 
-                        #[ink(message, selector = "0xDEADBEEF")]
+                        #[pro(message, selector = "0xDEADBEEF")]
                         pub fn my_message_1(&self) {}
                     }
 
                     impl MyStorage {
-                        #[ink(message, selector = "0xDEADBEEF")]
+                        #[pro(message, selector = "0xDEADBEEF")]
                         pub fn my_message_2(&self) {}
                     }
                 }
             },
-            "encountered ink! messages with overlapping selectors (= [DE, AD, BE, EF])\n\
-                hint: use #[ink(selector = \"0x...\")] on the callable or \
-                #[ink(namespace = \"...\")] on the implementation block to \
+            "encountered pro! messages with overlapping selectors (= [DE, AD, BE, EF])\n\
+                hint: use #[pro(selector = \"0x...\")] on the callable or \
+                #[pro(namespace = \"...\")] on the implementation block to \
                 disambiguate overlapping selectors.",
         );
     }
@@ -735,26 +735,26 @@ mod tests {
         assert_fail(
             syn::parse_quote! {
                 mod my_module {
-                    #[ink(storage)]
+                    #[pro(storage)]
                     pub struct MyStorage {}
 
                     impl MyStorage {
-                        #[ink(constructor, selector = "0xDEADBEEF")]
+                        #[pro(constructor, selector = "0xDEADBEEF")]
                         pub fn my_constructor_1() -> Self {}
 
-                        #[ink(message)]
+                        #[pro(message)]
                         pub fn my_message_1(&self) {}
                     }
 
                     impl MyStorage {
-                        #[ink(constructor, selector = "0xDEADBEEF")]
+                        #[pro(constructor, selector = "0xDEADBEEF")]
                         pub fn my_constructor_2() -> Self {}
                     }
                 }
             },
-            "encountered ink! constructors with overlapping selectors (= [DE, AD, BE, EF])\n\
-                hint: use #[ink(selector = \"0x...\")] on the callable or \
-                #[ink(namespace = \"...\")] on the implementation block to \
+            "encountered pro! constructors with overlapping selectors (= [DE, AD, BE, EF])\n\
+                hint: use #[pro(selector = \"0x...\")] on the callable or \
+                #[pro(namespace = \"...\")] on the implementation block to \
                 disambiguate overlapping selectors.",
         );
     }
@@ -764,26 +764,26 @@ mod tests {
         assert_fail(
             syn::parse_quote! {
                 mod my_module {
-                    #[ink(storage)]
+                    #[pro(storage)]
                     pub struct MyStorage {}
 
                     impl first::MyTrait for MyStorage {
-                        #[ink(constructor)]
+                        #[pro(constructor)]
                         fn my_constructor() -> Self {}
 
-                        #[ink(message)]
+                        #[pro(message)]
                         fn my_message(&self) {}
                     }
 
                     impl second::MyTrait for MyStorage {
-                        #[ink(message)]
+                        #[pro(message)]
                         fn my_message(&self) {}
                     }
                 }
             },
-            "encountered ink! messages with overlapping selectors (= [EA, 48, 09, 33])\n\
-                hint: use #[ink(selector = \"0x...\")] on the callable or \
-                #[ink(namespace = \"...\")] on the implementation block to \
+            "encountered pro! messages with overlapping selectors (= [EA, 48, 09, 33])\n\
+                hint: use #[pro(selector = \"0x...\")] on the callable or \
+                #[pro(namespace = \"...\")] on the implementation block to \
                 disambiguate overlapping selectors.",
         );
     }
@@ -793,20 +793,20 @@ mod tests {
         assert!(
             <ir::ItemMod as TryFrom<syn::ItemMod>>::try_from(syn::parse_quote! {
                 mod my_module {
-                    #[ink(storage)]
+                    #[pro(storage)]
                     pub struct MyStorage {}
 
-                    #[ink(namespace = "first")]
+                    #[pro(namespace = "first")]
                     impl first::MyTrait for MyStorage {
-                        #[ink(constructor)]
+                        #[pro(constructor)]
                         fn my_constructor() -> Self {}
 
-                        #[ink(message)]
+                        #[pro(message)]
                         fn my_message(&self) {}
                     }
 
                     impl second::MyTrait for MyStorage {
-                        #[ink(message)]
+                        #[pro(message)]
                         fn my_message(&self) {}
                     }
                 }
@@ -820,14 +820,14 @@ mod tests {
         assert!(
             <ir::ItemMod as TryFrom<syn::ItemMod>>::try_from(syn::parse_quote! {
                 mod my_module {
-                    #[ink(storage)]
+                    #[pro(storage)]
                     pub struct MyStorage {}
 
                     impl MyStorage {
-                        #[ink(constructor, selector = "0xDEADBEEF")]
+                        #[pro(constructor, selector = "0xDEADBEEF")]
                         pub fn my_constructor() -> Self {}
 
-                        #[ink(message, selector = "0xDEADBEEF")]
+                        #[pro(message, selector = "0xDEADBEEF")]
                         pub fn my_message(&self) {}
                     }
                 }

@@ -18,7 +18,7 @@ mod cross_calling;
 mod dispatch;
 mod env;
 mod events;
-mod ink_test;
+mod pro_test;
 mod item_impls;
 mod metadata;
 mod storage;
@@ -34,7 +34,7 @@ pub use self::{
     dispatch::Dispatch,
     env::Env,
     events::Events,
-    ink_test::InkTest,
+    pro_test::ProTest,
     item_impls::ItemImpls,
     metadata::Metadata,
     storage::Storage,

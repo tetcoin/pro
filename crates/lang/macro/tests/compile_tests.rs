@@ -21,7 +21,7 @@ fn compile_tests() {
     t.pass("tests/ui/pass/03-incrementer-contract.rs");
     t.pass("tests/ui/pass/04-erc20-contract.rs");
     t.pass("tests/ui/pass/05-erc721-contract.rs");
-    t.pass("tests/ui/pass/06-non-ink-items.rs");
+    t.pass("tests/ui/pass/06-non-pro-items.rs");
     t.pass("tests/ui/pass/07-flipper-as-dependency.rs");
     t.pass("tests/ui/pass/08-static-env.rs");
     t.pass("tests/ui/pass/09-derive-for-storage.rs");
@@ -48,12 +48,12 @@ fn compile_tests() {
     t.compile_fail("tests/ui/fail/M-03-message-returns-self.rs");
     t.compile_fail("tests/ui/fail/M-04-message-returns-non-codec.rs");
     t.compile_fail("tests/ui/fail/M-05-message-invalid-selector.rs");
-    t.compile_fail("tests/ui/fail/M-10-method-unknown-ink-marker.rs");
+    t.compile_fail("tests/ui/fail/M-10-method-unknown-pro-marker.rs");
 
     t.compile_fail("tests/ui/fail/S-01-missing-storage-struct.rs");
     t.compile_fail("tests/ui/fail/S-02-multiple-storage-structs.rs");
-    t.compile_fail("tests/ui/fail/S-03-struct-unknown-ink-marker.rs");
-    t.compile_fail("tests/ui/fail/S-04-non-storage-ink-impls.rs");
+    t.compile_fail("tests/ui/fail/S-03-struct-unknown-pro-marker.rs");
+    t.compile_fail("tests/ui/fail/S-04-non-storage-pro-impls.rs");
     t.compile_fail("tests/ui/fail/S-05-storage-as-event.rs");
     t.compile_fail("tests/ui/fail/S-06-event-as-storage.rs");
 

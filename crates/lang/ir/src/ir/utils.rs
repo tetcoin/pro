@@ -36,7 +36,7 @@ pub fn ensure_pub_visibility(
     if let Some(bad_visibility) = bad_visibility {
         return Err(format_err!(
             bad_visibility,
-            "non `pub` ink! {} are not supported",
+            "non `pub` pro! {} are not supported",
             name
         ))
     }

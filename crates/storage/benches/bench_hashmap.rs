@@ -20,8 +20,8 @@ use criterion::{
     Criterion,
 };
 
-use ink_primitives::Key;
-use ink_storage::traits::{
+use pro_primitives::Key;
+use pro_storage::traits::{
     KeyPtr,
     SpreadLayout,
 };
@@ -147,7 +147,7 @@ macro_rules! gen_tests_for_backend {
         }
 
         fn bench_remove_populated_cache(c: &mut Criterion) {
-            let _ = ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+            let _ = pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
                 let mut group = c.benchmark_group(
                     format!("{} Compare: `remove` and `remove_entry_api` (populated cache)", stringify!($backend))
                 );
@@ -172,7 +172,7 @@ macro_rules! gen_tests_for_backend {
         }
 
         fn bench_insert_empty_cache(c: &mut Criterion) {
-            let _ = ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+            let _ = pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
                 let mut group = c.benchmark_group(
                     format!("{} Compare: `insert_and_inc` and `insert_and_inc_entry_api` (empty cache)", stringify!($backend))
                 );
@@ -203,7 +203,7 @@ macro_rules! gen_tests_for_backend {
         }
 
         fn bench_remove_empty_cache(c: &mut Criterion) {
-            let _ = ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+            let _ = pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
                 let mut group =
                     c.benchmark_group(format!("{} Compare: `remove` and `remove_entry_api` (empty cache)", stringify!($backend)));
                 group.bench_function("remove", |b| {
@@ -236,8 +236,8 @@ macro_rules! gen_tests_for_backend {
 
 mod lazyhmap_backend {
     use super::*;
-    use ink_env::hash::Blake2x256;
-    use ink_storage::lazy::lazy_hmap::{
+    use pro_env::hash::Blake2x256;
+    use pro_storage::lazy::lazy_hmap::{
         Entry,
         LazyHashMap,
     };
@@ -267,7 +267,7 @@ mod lazyhmap_backend {
 
 mod hashmap_backend {
     use super::*;
-    use ink_storage::collections::{
+    use pro_storage::collections::{
         hashmap::Entry,
         HashMap as StorageHashMap,
     };

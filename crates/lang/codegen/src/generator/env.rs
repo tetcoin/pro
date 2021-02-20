@@ -17,7 +17,7 @@ use derive_more::From;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 
-/// Generates code for the ink! environment of the contract.
+/// Generates code for the pro! environment of the contract.
 #[derive(From)]
 pub struct Env<'a> {
     contract: &'a ir::Contract,
@@ -28,17 +28,17 @@ impl GenerateCode for Env<'_> {
         let env = self.contract.config().env();
         let storage_ident = self.contract.module().storage().ident();
         quote! {
-            impl ::ink_lang::ContractEnv for #storage_ident {
+            impl ::pro_lang::ContractEnv for #storage_ident {
                 type Env = #env;
             }
 
-            type Environment = <#storage_ident as ::ink_lang::ContractEnv>::Env;
+            type Environment = <#storage_ident as ::pro_lang::ContractEnv>::Env;
 
-            type AccountId = <<#storage_ident as ::ink_lang::ContractEnv>::Env as ::ink_env::Environment>::AccountId;
-            type Balance = <<#storage_ident as ::ink_lang::ContractEnv>::Env as ::ink_env::Environment>::Balance;
-            type Hash = <<#storage_ident as ::ink_lang::ContractEnv>::Env as ::ink_env::Environment>::Hash;
-            type Timestamp = <<#storage_ident as ::ink_lang::ContractEnv>::Env as ::ink_env::Environment>::Timestamp;
-            type BlockNumber = <<#storage_ident as ::ink_lang::ContractEnv>::Env as ::ink_env::Environment>::BlockNumber;
+            type AccountId = <<#storage_ident as ::pro_lang::ContractEnv>::Env as ::pro_env::Environment>::AccountId;
+            type Balance = <<#storage_ident as ::pro_lang::ContractEnv>::Env as ::pro_env::Environment>::Balance;
+            type Hash = <<#storage_ident as ::pro_lang::ContractEnv>::Env as ::pro_env::Environment>::Hash;
+            type Timestamp = <<#storage_ident as ::pro_lang::ContractEnv>::Env as ::pro_env::Environment>::Timestamp;
+            type BlockNumber = <<#storage_ident as ::pro_lang::ContractEnv>::Env as ::pro_env::Environment>::BlockNumber;
         }
     }
 }

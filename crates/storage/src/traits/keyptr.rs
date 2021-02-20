@@ -13,8 +13,8 @@
 // limitations under the License.
 
 use super::SpreadLayout;
-use ink_primitives::Key;
-pub use ink_primitives::KeyPtr;
+use pro_primitives::Key;
+pub use pro_primitives::KeyPtr;
 
 /// Extension trait to make `KeyPtr` simpler to use for `T: SpreadLayout` types.
 pub trait ExtKeyPtr {

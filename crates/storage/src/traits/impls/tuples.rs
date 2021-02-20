@@ -17,7 +17,7 @@ use crate::traits::{
     PackedLayout,
     SpreadLayout,
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 macro_rules! impl_layout_for_tuple {
     ( $($frag:ident),* $(,)? ) => {

@@ -16,7 +16,7 @@ use crate::ir;
 use core::convert::TryFrom;
 
 #[test]
-fn is_ink_impl_block_eval_false_works() {
+fn is_pro_impl_block_eval_false_works() {
     let item_impls: Vec<syn::ItemImpl> = vec![
         syn::parse_quote! {
             impl MyStorage {}
@@ -27,133 +27,133 @@ fn is_ink_impl_block_eval_false_works() {
     ];
     for item_impl in &item_impls {
         assert_eq!(
-            ir::ItemImpl::is_ink_impl_block(item_impl).map_err(|err| err.to_string()),
+            ir::ItemImpl::is_pro_impl_block(item_impl).map_err(|err| err.to_string()),
             Ok(false),
         )
     }
 }
 
 #[test]
-fn is_ink_impl_block_eval_true_works() {
+fn is_pro_impl_block_eval_true_works() {
     let item_impls: Vec<syn::ItemImpl> = vec![
         syn::parse_quote! {
-            #[ink(impl)]
+            #[pro(impl)]
             impl MyStorage {}
         },
         syn::parse_quote! {
             impl MyStorage {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 fn my_constructor() -> Self {}
             }
         },
         syn::parse_quote! {
             impl MyStorage {
-                #[ink(message)]
+                #[pro(message)]
                 fn my_message(&self) {}
             }
         },
         syn::parse_quote! {
-            #[ink(impl)]
+            #[pro(impl)]
             impl MyTrait for MyStorage {}
         },
         syn::parse_quote! {
             impl MyTrait for MyStorage {
-                #[ink(message)]
+                #[pro(message)]
                 fn my_message(&self) {}
             }
         },
         syn::parse_quote! {
-            #[ink(impl)]
+            #[pro(impl)]
             impl MyStorage {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 fn my_constructor() -> Self {}
-                #[ink(message)]
+                #[pro(message)]
                 fn my_message(&self) {}
             }
         },
         syn::parse_quote! {
-            #[ink(impl)]
+            #[pro(impl)]
             impl MyTrait for MyStorage {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 fn my_constructor() -> Self {}
-                #[ink(message)]
+                #[pro(message)]
                 fn my_message(&self) {}
             }
         },
         syn::parse_quote! {
             // This is actually invalid but the function under test will
-            // still determine this to be a valid ink! implementation block.
-            #[ink(impl)]
+            // still determine this to be a valid pro! implementation block.
+            #[pro(impl)]
             impl MyStorage {
-                #[ink(..)]
-                fn invalid_ink_attribute(&self) {}
+                #[pro(..)]
+                fn invalid_pro_attribute(&self) {}
             }
         },
     ];
     for item_impl in &item_impls {
         assert_eq!(
-            ir::ItemImpl::is_ink_impl_block(item_impl).map_err(|err| err.to_string()),
+            ir::ItemImpl::is_pro_impl_block(item_impl).map_err(|err| err.to_string()),
             Ok(true),
         )
     }
 }
 
-fn assert_is_ink_impl_block_fails(impl_block: &syn::ItemImpl, expected: &str) {
+fn assert_is_pro_impl_block_fails(impl_block: &syn::ItemImpl, expected: &str) {
     assert_eq!(
-        ir::ItemImpl::is_ink_impl_block(impl_block).map_err(|err| err.to_string()),
+        ir::ItemImpl::is_pro_impl_block(impl_block).map_err(|err| err.to_string()),
         Err(expected.to_string())
     )
 }
 
 #[test]
-fn is_ink_impl_block_fails() {
-    assert_is_ink_impl_block_fails(
+fn is_pro_impl_block_fails() {
+    assert_is_pro_impl_block_fails(
         &syn::parse_quote! {
-            #[ink(invalid)]
+            #[pro(invalid)]
             impl MyStorage {}
         },
-        "unknown ink! attribute (path)",
+        "unknown pro! attribute (path)",
     );
-    assert_is_ink_impl_block_fails(
+    assert_is_pro_impl_block_fails(
         &syn::parse_quote! {
-            #[ink(invalid)]
+            #[pro(invalid)]
             impl MyTrait for MyStorage {}
         },
-        "unknown ink! attribute (path)",
+        "unknown pro! attribute (path)",
     );
-    assert_is_ink_impl_block_fails(
+    assert_is_pro_impl_block_fails(
         &syn::parse_quote! {
-            #[ink(impl)]
-            #[ink(impl)]
+            #[pro(impl)]
+            #[pro(impl)]
             impl MyStorage {}
         },
-        "encountered duplicate ink! attribute",
+        "encountered duplicate pro! attribute",
     );
-    assert_is_ink_impl_block_fails(
+    assert_is_pro_impl_block_fails(
         &syn::parse_quote! {
-            #[ink(impl)]
-            #[ink(impl)]
+            #[pro(impl)]
+            #[pro(impl)]
             impl MyTrait for MyStorage {}
         },
-        "encountered duplicate ink! attribute",
+        "encountered duplicate pro! attribute",
     );
-    assert_is_ink_impl_block_fails(
+    assert_is_pro_impl_block_fails(
         &syn::parse_quote! {
             impl MyStorage {
-                #[ink(invalid)]
+                #[pro(invalid)]
                 fn invalid_fn_attr(&self) {}
             }
         },
-        "unknown ink! attribute (path)",
+        "unknown pro! attribute (path)",
     );
-    assert_is_ink_impl_block_fails(
+    assert_is_pro_impl_block_fails(
         &syn::parse_quote! {
             impl MyTrait for MyStorage {
-                #[ink(invalid)]
+                #[pro(invalid)]
                 fn invalid_fn_attr(&self) {}
             }
         },
-        "unknown ink! attribute (path)",
+        "unknown pro! attribute (path)",
     );
 }
 
@@ -172,38 +172,38 @@ fn visibility_fails() {
     assert_try_from_item_impl_fails(
         syn::parse_quote! {
             impl MyStorage {
-                #[ink(message)]
+                #[pro(message)]
                 fn my_private_message(&self) {}
             }
         },
-        "ink! message in inherent impl blocks must have public visibility",
+        "pro! message in inherent impl blocks must have public visibility",
     );
     assert_try_from_item_impl_fails(
         syn::parse_quote! {
             impl MyStorage {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 fn my_private_constructor() -> Self {}
             }
         },
-        "ink! constructor in inherent impl blocks must have public visibility",
+        "pro! constructor in inherent impl blocks must have public visibility",
     );
     assert_try_from_item_impl_fails(
         syn::parse_quote! {
             impl MyTrait for MyStorage {
-                #[ink(message)]
+                #[pro(message)]
                 pub fn my_public_message(&self) {}
             }
         },
-        "ink! message in trait impl blocks must have inherited visibility",
+        "pro! message in trait impl blocks must have inherited visibility",
     );
     assert_try_from_item_impl_fails(
         syn::parse_quote! {
             impl MyTrait for MyStorage {
-                #[ink(constructor)]
+                #[pro(constructor)]
                 pub fn my_public_constructor() -> Self {}
             }
         },
-        "ink! constructor in trait impl blocks must have inherited visibility",
+        "pro! constructor in trait impl blocks must have inherited visibility",
     );
 }
 
@@ -211,22 +211,22 @@ fn visibility_fails() {
 fn try_from_works() {
     let item_impls: Vec<syn::ItemImpl> = vec![
         syn::parse_quote! {
-            #[ink(impl)]
+            #[pro(impl)]
             impl MyStorage {}
         },
         syn::parse_quote! {
             impl MyStorage {
-                #[ink(message)]
+                #[pro(message)]
                 pub fn my_message(&self) {}
             }
         },
         syn::parse_quote! {
-            #[ink(impl)]
+            #[pro(impl)]
             impl MyTrait for MyStorage {}
         },
         syn::parse_quote! {
             impl MyTrait for MyStorage {
-                #[ink(message)]
+                #[pro(message)]
                 fn my_message(&self) {}
             }
         },
@@ -240,9 +240,9 @@ fn try_from_works() {
 fn namespace_works() {
     let impl_block: ir::ItemImpl =
         <ir::ItemImpl as TryFrom<syn::ItemImpl>>::try_from(syn::parse_quote! {
-            #[ink(namespace = "my_namespace")]
+            #[pro(namespace = "my_namespace")]
             impl MyStorage {
-                #[ink(message)]
+                #[pro(message)]
                 pub fn my_message(&self) {}
             }
         })

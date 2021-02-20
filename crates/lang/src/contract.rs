@@ -17,7 +17,7 @@ use crate::DispatchError;
 /// The contract dispatch mode.
 ///
 /// Tells the [`DispatchUsingMode`](`crate::DispatchUsingMode`) implementation for
-/// an ink! smart contract how to dispatch for a call.
+/// an pro! smart contract how to dispatch for a call.
 #[derive(Copy, Clone, PartialEq, Eq)]
 #[doc(hidden)]
 pub enum DispatchMode {

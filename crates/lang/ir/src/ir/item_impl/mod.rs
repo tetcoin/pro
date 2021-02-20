@@ -55,7 +55,7 @@ pub use self::{
 use quote::TokenStreamExt as _;
 use syn::spanned::Spanned;
 
-/// An ink! implementation block.
+/// An pro! implementation block.
 ///
 /// # Note
 ///
@@ -64,7 +64,7 @@ use syn::spanned::Spanned;
 ///   can be a trait implementation for the storage struct.
 /// - We try to support all fields that are supported by the underlying `syn`
 ///   implementation for [`syn::ItemImpl`] even though they are not really
-///   required to represent ink!. This is done for consistency with `syn`.
+///   required to represent pro!. This is done for consistency with `syn`.
 #[derive(Debug, PartialEq, Eq)]
 pub struct ItemImpl {
     attrs: Vec<syn::Attribute>,
@@ -83,7 +83,7 @@ pub struct ItemImpl {
 }
 
 impl quote::ToTokens for ItemImpl {
-    /// We mainly implement this trait for this ink! type to have a derived
+    /// We mainly implement this trait for this pro! type to have a derived
     /// [`Spanned`](`syn::spanned::Spanned`) implementation for it.
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         tokens.append_all(
@@ -114,19 +114,19 @@ impl quote::ToTokens for ItemImpl {
 }
 
 impl ItemImpl {
-    /// Returns `true` if the Rust implementation block is an ink! implementation
+    /// Returns `true` if the Rust implementation block is an pro! implementation
     /// block.
     ///
     /// # Note
     ///
     /// This is the case if:
     ///
-    /// - The ink! implementation block has been annotatated as in:
+    /// - The pro! implementation block has been annotatated as in:
     ///
     /// ```
     /// # use core::convert::TryFrom;
-    /// # <ink_lang_ir::ItemImpl as TryFrom<syn::ItemImpl>>::try_from(syn::parse_quote! {
-    /// #[ink(impl)]
+    /// # <pro_lang_ir::ItemImpl as TryFrom<syn::ItemImpl>>::try_from(syn::parse_quote! {
+    /// #[pro(impl)]
     /// impl MyStorage {
     ///     fn my_function(&self) {
     ///         /* inherent method implementation */
@@ -136,14 +136,14 @@ impl ItemImpl {
     /// # }).unwrap();
     /// ```
     ///
-    /// - Or if any of the ink! implementation block methods do have ink!
+    /// - Or if any of the pro! implementation block methods do have pro!
     ///   specific annotations:
     ///
     /// ```
     /// # use core::convert::TryFrom;
-    /// # <ink_lang_ir::ItemImpl as TryFrom<syn::ItemImpl>>::try_from(syn::parse_quote! {
+    /// # <pro_lang_ir::ItemImpl as TryFrom<syn::ItemImpl>>::try_from(syn::parse_quote! {
     /// impl MyStorage {
-    ///     #[ink(constructor)]
+    ///     #[pro(constructor)]
     ///     pub fn my_constructor() -> Self {
     ///         /* constructor implementation */
     ///         unimplemented!()
@@ -152,31 +152,31 @@ impl ItemImpl {
     /// # }).unwrap();
     /// ```
     ///
-    /// The same rules apply to ink! trait implementation blocks.
+    /// The same rules apply to pro! trait implementation blocks.
     ///
     /// # Errors
     ///
-    /// Returns an error in case of encountered malformed ink! attributes.
-    pub(super) fn is_ink_impl_block(
+    /// Returns an error in case of encountered malformed pro! attributes.
+    pub(super) fn is_pro_impl_block(
         item_impl: &syn::ItemImpl,
     ) -> Result<bool, syn::Error> {
         // Quick check in order to efficiently bail out in case where there are
-        // no ink! attributes:
-        if !ir::contains_ink_attributes(&item_impl.attrs)
+        // no pro! attributes:
+        if !ir::contains_pro_attributes(&item_impl.attrs)
             && item_impl
                 .items
                 .iter()
-                .all(|item| !ir::contains_ink_attributes(item.attrs()))
+                .all(|item| !ir::contains_pro_attributes(item.attrs()))
         {
             return Ok(false)
         }
         // Check if the implementation block itself has been annotated with
-        // `#[ink(impl)]` and return `true` if this is the case.
-        let (ink_attrs, _) = ir::partition_attributes(item_impl.attrs.clone())?;
+        // `#[pro(impl)]` and return `true` if this is the case.
+        let (pro_attrs, _) = ir::partition_attributes(item_impl.attrs.clone())?;
         let impl_block_span = item_impl.span();
-        if !ink_attrs.is_empty() {
+        if !pro_attrs.is_empty() {
             let normalized =
-                ir::InkAttribute::from_expanded(ink_attrs).map_err(|err| {
+                ir::ProAttribute::from_expanded(pro_attrs).map_err(|err| {
                     err.into_combine(format_err!(impl_block_span, "at this invocation",))
                 })?;
             if normalized
@@ -187,15 +187,15 @@ impl ItemImpl {
             }
         }
         // Check if any of the implementation block's methods either resembles
-        // an ink! constructor or an ink! message:
+        // an pro! constructor or an pro! message:
         'repeat: for item in &item_impl.items {
             match item {
                 syn::ImplItem::Method(method_item) => {
-                    if !ir::contains_ink_attributes(&method_item.attrs) {
+                    if !ir::contains_pro_attributes(&method_item.attrs) {
                         continue 'repeat
                     }
-                    let attr = ir::first_ink_attribute(&method_item.attrs)?
-                        .expect("missing expected ink! attribute for struct");
+                    let attr = ir::first_pro_attribute(&method_item.attrs)?
+                        .expect("missing expected pro! attribute for struct");
                     match attr.first().kind() {
                         ir::AttributeArg::Constructor | ir::AttributeArg::Message => {
                             return Ok(true)
@@ -215,28 +215,28 @@ impl TryFrom<syn::ItemImpl> for ItemImpl {
 
     fn try_from(item_impl: syn::ItemImpl) -> Result<Self, Self::Error> {
         let impl_block_span = item_impl.span();
-        if !Self::is_ink_impl_block(&item_impl)? {
+        if !Self::is_pro_impl_block(&item_impl)? {
             return Err(format_err_spanned!(
                 item_impl,
-                "missing ink! annotations on the impl block or on any of its items"
+                "missing pro! annotations on the impl block or on any of its items"
             ))
         }
         if let Some(defaultness) = item_impl.defaultness {
             return Err(format_err_spanned!(
                 defaultness,
-                "default implementations are unsupported for ink! implementation blocks",
+                "default implementations are unsupported for pro! implementation blocks",
             ))
         }
         if let Some(unsafety) = item_impl.unsafety {
             return Err(format_err_spanned!(
                 unsafety,
-                "unsafe ink! implementation blocks are not supported",
+                "unsafe pro! implementation blocks are not supported",
             ))
         }
         if !item_impl.generics.params.is_empty() {
             return Err(format_err_spanned!(
                 item_impl.generics.params,
-                "generic ink! implementation blocks are not supported",
+                "generic pro! implementation blocks are not supported",
             ))
         }
         let impl_items = item_impl
@@ -246,8 +246,8 @@ impl TryFrom<syn::ItemImpl> for ItemImpl {
             .collect::<Result<Vec<_>, syn::Error>>()?;
         let is_trait_impl = item_impl.trait_.is_some();
         for impl_item in &impl_items {
-            /// Ensures that visibility of ink! messages and constructors is
-            /// valid in dependency of the containing ink! impl block.
+            /// Ensures that visibility of pro! messages and constructors is
+            /// valid in dependency of the containing pro! impl block.
             ///
             /// # Note
             ///
@@ -263,7 +263,7 @@ impl TryFrom<syn::ItemImpl> for ItemImpl {
                 if requires_pub != vis.is_pub() {
                     return Err(format_err!(
                         span,
-                        "ink! {} in {} impl blocks must have {} visibility",
+                        "pro! {} in {} impl blocks must have {} visibility",
                         what,
                         if is_trait_impl { "trait" } else { "inherent" },
                         if requires_pub { "public" } else { "inherited" },
@@ -291,11 +291,11 @@ impl TryFrom<syn::ItemImpl> for ItemImpl {
                 _ => (),
             }
         }
-        let (ink_attrs, other_attrs) = ir::partition_attributes(item_impl.attrs)?;
+        let (pro_attrs, other_attrs) = ir::partition_attributes(item_impl.attrs)?;
         let mut namespace = None;
-        if !ink_attrs.is_empty() {
+        if !pro_attrs.is_empty() {
             let normalized =
-                ir::InkAttribute::from_expanded(ink_attrs).map_err(|err| {
+                ir::ProAttribute::from_expanded(pro_attrs).map_err(|err| {
                     err.into_combine(format_err!(impl_block_span, "at this invocation",))
                 })?;
             normalized.ensure_no_conflicts(|arg| {
@@ -324,7 +324,7 @@ impl TryFrom<syn::ItemImpl> for ItemImpl {
 }
 
 impl ItemImpl {
-    /// Returns all non-ink! specific attributes of the implementation block.
+    /// Returns all non-pro! specific attributes of the implementation block.
     pub fn attrs(&self) -> &[syn::Attribute] {
         &self.attrs
     }
@@ -356,12 +356,12 @@ impl ItemImpl {
         self.namespace.as_ref()
     }
 
-    /// Returns an iterator yielding the ink! messages of the implementation block.
+    /// Returns an iterator yielding the pro! messages of the implementation block.
     pub fn iter_messages(&self) -> IterMessages {
         IterMessages::new(self)
     }
 
-    /// Returns an iterator yielding the ink! messages of the implementation block.
+    /// Returns an iterator yielding the pro! messages of the implementation block.
     pub fn iter_constructors(&self) -> IterConstructors {
         IterConstructors::new(self)
     }

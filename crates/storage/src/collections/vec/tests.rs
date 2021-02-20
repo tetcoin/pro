@@ -21,7 +21,7 @@ use crate::{
     },
     Lazy,
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 #[test]
 fn new_vec_works() {
@@ -359,8 +359,8 @@ fn swap_remove_drop_works() {
 }
 
 #[test]
-fn spread_layout_push_pull_works() -> ink_env::Result<()> {
-    ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+fn spread_layout_push_pull_works() -> pro_env::Result<()> {
+    pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
         let vec1 = vec_from_slice(&[b'a', b'b', b'c', b'd']);
         let root_key = Key::from([0x42; 32]);
         SpreadLayout::push_spread(&vec1, &mut KeyPtr::from(root_key));
@@ -376,7 +376,7 @@ fn spread_layout_push_pull_works() -> ink_env::Result<()> {
 #[test]
 #[should_panic(expected = "encountered empty storage cell")]
 fn spread_layout_clear_works() {
-    ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+    pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
         let vec1 = vec_from_slice(&[b'a', b'b', b'c', b'd']);
         let root_key = Key::from([0x42; 32]);
         SpreadLayout::push_spread(&vec1, &mut KeyPtr::from(root_key));
@@ -396,7 +396,7 @@ fn spread_layout_clear_works() {
 
 #[test]
 fn set_works() {
-    ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+    pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
         let mut vec = vec_from_slice(&[b'a', b'b', b'c', b'd']);
         let _ = vec.set(0, b'x').unwrap();
         let expected = vec_from_slice(&[b'x', b'b', b'c', b'd']);
@@ -430,7 +430,7 @@ fn clear_works_on_empty_vec() {
 #[test]
 #[should_panic(expected = "encountered empty storage cell")]
 fn storage_is_cleared_completely_after_pull_lazy() {
-    ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+    pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
         // given
         let root_key = Key::from([0x42; 32]);
         let mut lazy_vec: Lazy<StorageVec<u32>> = Lazy::new(StorageVec::new());
@@ -445,12 +445,12 @@ fn storage_is_cleared_completely_after_pull_lazy() {
         SpreadLayout::clear_spread(&pulled_vec, &mut KeyPtr::from(root_key));
 
         // then
-        let contract_id = ink_env::test::get_current_contract_account_id::<
-            ink_env::DefaultEnvironment,
+        let contract_id = pro_env::test::get_current_contract_account_id::<
+            pro_env::DefaultEnvironment,
         >()
         .expect("Cannot get contract id");
-        let used_cells = ink_env::test::count_used_storage_cells::<
-            ink_env::DefaultEnvironment,
+        let used_cells = pro_env::test::count_used_storage_cells::<
+            pro_env::DefaultEnvironment,
         >(&contract_id)
         .expect("used cells must be returned");
         assert_eq!(used_cells, 0);
@@ -465,7 +465,7 @@ fn storage_is_cleared_completely_after_pull_lazy() {
 #[test]
 #[should_panic(expected = "encountered empty storage cell")]
 fn drop_works() {
-    ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+    pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
         let root_key = Key::from([0x42; 32]);
 
         // if the setup panics it should not cause the test to pass
@@ -479,12 +479,12 @@ fn drop_works() {
         });
         assert!(setup_result.is_ok(), "setup should not panic");
 
-        let contract_id = ink_env::test::get_current_contract_account_id::<
-            ink_env::DefaultEnvironment,
+        let contract_id = pro_env::test::get_current_contract_account_id::<
+            pro_env::DefaultEnvironment,
         >()
         .expect("Cannot get contract id");
-        let used_cells = ink_env::test::count_used_storage_cells::<
-            ink_env::DefaultEnvironment,
+        let used_cells = pro_env::test::count_used_storage_cells::<
+            pro_env::DefaultEnvironment,
         >(&contract_id)
         .expect("used cells must be returned");
         assert_eq!(used_cells, 0);

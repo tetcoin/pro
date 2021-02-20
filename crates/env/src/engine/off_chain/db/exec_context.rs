@@ -22,7 +22,7 @@ use super::{
     OffBalance,
 };
 use crate::Environment;
-use ink_prelude::vec::Vec;
+use pro_prelude::vec::Vec;
 
 pub type Bytes = Vec<u8>;
 

@@ -23,9 +23,9 @@ use crate::{
     },
 };
 use derive_more::From;
-use ink_prelude::collections::btree_map::BTreeMap;
-use ink_primitives::Key;
-use scale_info::{
+use pro_prelude::collections::btree_map::BTreeMap;
+use pro_primitives::Key;
+use tetsy_scale_info::{
     form::{
         Form,
         MetaForm,
@@ -42,7 +42,7 @@ use serde::{
     Serialize,
 };
 
-/// Represents the static storage layout of an ink! smart contract.
+/// Represents the static storage layout of an pro! smart contract.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, From, Serialize, Deserialize)]
 #[serde(bound(
     serialize = "F::Type: Serialize, F::String: Serialize",
@@ -59,7 +59,7 @@ pub enum Layout<F: Form = MetaForm> {
     Cell(CellLayout<F>),
     /// A layout that hashes values into the entire storage key space.
     ///
-    /// This is commonly used by ink! hashmaps and similar data structures.
+    /// This is commonly used by pro! hashmaps and similar data structures.
     Hash(HashLayout<F>),
     /// An array of associated storage cells encoded with a given type.
     ///

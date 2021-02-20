@@ -19,28 +19,28 @@ use crate::{
 use core::convert::TryFrom;
 use syn::spanned::Spanned;
 
-/// The ink! configuration.
+/// The pro! configuration.
 #[derive(Debug, Default, PartialEq, Eq)]
 pub struct Config {
     /// If `true` enables the dynamic storage allocator
-    /// facilities and code generation of the ink! smart
+    /// facilities and code generation of the pro! smart
     /// contract. Does incur some overhead. The default is
     /// `true`.
     dynamic_storage_allocator: Option<bool>,
-    /// If `true` compiles this ink! smart contract always as
+    /// If `true` compiles this pro! smart contract always as
     /// if it was a dependency of another smart contract.
     /// This configuration is mainly needed for testing and
     /// the default is `false`.
     as_dependency: Option<bool>,
     /// The environmental types definition.
     ///
-    /// This must be a type that implements `ink_env::Environment` and can
-    /// be used to change the underlying environmental types of an ink! smart
+    /// This must be a type that implements `pro_env::Environment` and can
+    /// be used to change the underlying environmental types of an pro! smart
     /// contract.
     env: Option<Environment>,
 }
 
-/// Return an error to notify about duplicate ink! config arguments.
+/// Return an error to notify about duplicate pro! config arguments.
 fn duplicate_config_err<F, S>(fst: F, snd: S, name: &str) -> syn::Error
 where
     F: Spanned,
@@ -48,7 +48,7 @@ where
 {
     format_err!(
         snd.span(),
-        "encountered duplicate ink! `{}` config argument",
+        "encountered duplicate pro! `{}` config argument",
         name,
     )
     .into_combine(format_err!(
@@ -79,7 +79,7 @@ impl TryFrom<ast::AttributeArgs> for Config {
                 } else {
                     return Err(format_err_spanned!(
                         arg,
-                        "expected a bool literal for `dynamic_storage_allocator` ink! config argument",
+                        "expected a bool literal for `dynamic_storage_allocator` pro! config argument",
                     ))
                 }
             } else if arg.name.is_ident("compile_as_dependency") {
@@ -91,7 +91,7 @@ impl TryFrom<ast::AttributeArgs> for Config {
                 } else {
                     return Err(format_err_spanned!(
                         arg,
-                        "expected a bool literal for `compile_as_dependency` ink! config argument",
+                        "expected a bool literal for `compile_as_dependency` pro! config argument",
                     ))
                 }
             } else if arg.name.is_ident("env") {
@@ -103,13 +103,13 @@ impl TryFrom<ast::AttributeArgs> for Config {
                 } else {
                     return Err(format_err_spanned!(
                         arg,
-                        "expected a path for `env` ink! config argument",
+                        "expected a path for `env` pro! config argument",
                     ))
                 }
             } else {
                 return Err(format_err_spanned!(
                     arg,
-                    "encountered unknown or unsupported ink! config argument",
+                    "encountered unknown or unsupported pro! config argument",
                 ))
             }
         }
@@ -124,7 +124,7 @@ impl TryFrom<ast::AttributeArgs> for Config {
 impl Config {
     /// Returns the environmental types definition if specified.
     /// Otherwise returns the default environmental types definition provided
-    /// by ink!.
+    /// by pro!.
     pub fn env(&self) -> syn::Path {
         self.env
             .as_ref()
@@ -134,14 +134,14 @@ impl Config {
     }
 
     /// Returns `true` if the dynamic storage allocator facilities are enabled
-    /// for the ink! smart contract, `false` otherwise.
+    /// for the pro! smart contract, `false` otherwise.
     ///
     /// If nothing has been specified returns the default which is `false`.
     pub fn is_dynamic_storage_allocator_enabled(&self) -> bool {
         self.dynamic_storage_allocator.unwrap_or(false)
     }
 
-    /// Return `true` if this ink! smart contract shall always be compiled as
+    /// Return `true` if this pro! smart contract shall always be compiled as
     /// if it was a dependency of another smart contract, returns `false`
     /// otherwise.
     ///
@@ -161,7 +161,7 @@ pub struct Environment {
 impl Default for Environment {
     fn default() -> Self {
         Self {
-            path: syn::parse_quote! { ::ink_env::DefaultEnvironment },
+            path: syn::parse_quote! { ::pro_env::DefaultEnvironment },
         }
     }
 }
@@ -171,7 +171,7 @@ mod tests {
     use super::*;
 
     /// Asserts that the given input config attribute argument are converted
-    /// into the expected ink! configuration or yields the expected error message.
+    /// into the expected pro! configuration or yields the expected error message.
     fn assert_try_from(
         input: ast::AttributeArgs,
         expected: Result<Config, &'static str>,
@@ -206,7 +206,7 @@ mod tests {
     fn storage_alloc_invalid_value_fails() {
         assert_try_from(
             syn::parse_quote! { dynamic_storage_allocator = "invalid" },
-            Err("expected a bool literal for `dynamic_storage_allocator` ink! config argument"),
+            Err("expected a bool literal for `dynamic_storage_allocator` pro! config argument"),
         )
     }
 
@@ -229,7 +229,7 @@ mod tests {
         assert_try_from(
             syn::parse_quote! { compile_as_dependency = "invalid" },
             Err(
-                "expected a bool literal for `compile_as_dependency` ink! config argument"
+                "expected a bool literal for `compile_as_dependency` pro! config argument"
             )
         )
     }
@@ -254,7 +254,7 @@ mod tests {
     fn env_invalid_value_fails() {
         assert_try_from(
             syn::parse_quote! { env = "invalid" },
-            Err("expected a path for `env` ink! config argument"),
+            Err("expected a path for `env` pro! config argument"),
         );
     }
 
@@ -262,7 +262,7 @@ mod tests {
     fn unknown_arg_fails() {
         assert_try_from(
             syn::parse_quote! { unknown = argument },
-            Err("encountered unknown or unsupported ink! config argument"),
+            Err("encountered unknown or unsupported pro! config argument"),
         );
     }
 
@@ -273,7 +273,7 @@ mod tests {
                 env = ::my::env::Types,
                 env = ::my::other::env::Types,
             },
-            Err("encountered duplicate ink! `env` config argument"),
+            Err("encountered duplicate pro! `env` config argument"),
         );
     }
 }

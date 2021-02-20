@@ -14,9 +14,9 @@
 
 use proc_macro2::TokenStream as TokenStream2;
 
-/// Types implementing this trait are code generators for the ink! language.
+/// Types implementing this trait are code generators for the pro! language.
 pub trait GenerateCode {
-    /// Generates ink! contract code.
+    /// Generates pro! contract code.
     fn generate_code(&self) -> TokenStream2;
 }
 

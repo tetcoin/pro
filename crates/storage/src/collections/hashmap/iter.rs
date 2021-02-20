@@ -22,11 +22,11 @@ use crate::{
     lazy::LazyHashMap,
     traits::PackedLayout,
 };
-use ink_env::hash::{
+use pro_env::hash::{
     CryptoHash,
     HashOutput,
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 /// An iterator over shared references to the elements of a storage hash map.
 #[derive(Debug, Copy, Clone)]

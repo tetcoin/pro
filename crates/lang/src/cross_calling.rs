@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use ink_env::Environment;
+use pro_env::Environment;
 
 /// The type that can never be returned because it is not possible to craft an instance of it.
 #[doc(hidden)]

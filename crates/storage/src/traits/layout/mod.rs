@@ -18,12 +18,12 @@ mod impls;
 mod tests;
 
 use crate::traits::KeyPtr;
-use ink_env::hash::{
+use pro_env::hash::{
     Blake2x256,
     Keccak256,
     Sha2x256,
 };
-use ink_metadata::layout::{
+use pro_metadata::layout::{
     CryptoHasher,
     Layout,
 };

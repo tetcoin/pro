@@ -17,7 +17,7 @@ use super::*;
 #[test]
 fn simple_storage_works() {
     let storage_struct: syn::Item = syn::parse_quote! {
-        #[ink(storage)]
+        #[pro(storage)]
         pub struct MyStorage {
             field_1: bool,
             field_2: i32,
@@ -26,16 +26,16 @@ fn simple_storage_works() {
     assert!(matches!(
         <ir::Item as TryFrom<_>>::try_from(storage_struct.clone())
             .map_err(|err| err.to_string()),
-        Ok(ir::Item::Ink(ir::InkItem::Storage(_)))
+        Ok(ir::Item::Pro(ir::ProItem::Storage(_)))
     ))
 }
 
 #[test]
 fn simple_event_works() {
     let event_struct: syn::Item = syn::parse_quote! {
-        #[ink(event)]
+        #[pro(event)]
         pub struct MyEvent {
-            #[ink(topic)]
+            #[pro(topic)]
             param_1: bool,
             param_2: i32,
         }
@@ -43,7 +43,7 @@ fn simple_event_works() {
     assert!(matches!(
         <ir::Item as TryFrom<_>>::try_from(event_struct.clone())
             .map_err(|err| err.to_string()),
-        Ok(ir::Item::Ink(ir::InkItem::Event(_)))
+        Ok(ir::Item::Pro(ir::ProItem::Event(_)))
     ))
 }
 

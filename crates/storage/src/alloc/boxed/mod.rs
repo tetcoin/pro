@@ -26,7 +26,7 @@ use crate::{
     lazy::Lazy,
     traits::SpreadLayout,
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 /// A dynamically allocated storage entity.
 ///

@@ -15,7 +15,7 @@
 //! Definitions and utilities for calling chain extension methods.
 //!
 //! Users should not use these types and definitions directly but rather use the provided
-//! `#[ink::chain_extension]` procedural macro defined in the `ink_lang` crate.
+//! `#[pro::chain_extension]` procedural macro defined in the `pro_lang` crate.
 
 use crate::{
     backend::EnvBackend,
@@ -28,11 +28,11 @@ use core::marker::PhantomData;
 
 /// Implemented by error codes in order to construct them from status codes.
 ///
-/// A status code is returned by calling an ink! chain extension method.
+/// A status code is returned by calling an pro! chain extension method.
 /// It is the `u32` return value.
 ///
 /// The purpose of an `ErrorCode` type that implements this trait is to provide
-/// more context information about the status of an ink! chain extension method call.
+/// more context information about the status of an pro! chain extension method call.
 pub trait FromStatusCode: Sized {
     /// Returns `Ok` if the status code for the called chain extension method is valid.
     ///
@@ -135,7 +135,7 @@ impl<I, ErrorCode> ChainExtensionMethod<I, (), ErrorCode> {
     /// # Note
     ///
     /// The set returned type `O` must not be of type `Result<T, E>`.
-    /// When using the `#[ink::chain_extension]` procedural macro to define
+    /// When using the `#[pro::chain_extension]` procedural macro to define
     /// this chain extension method the above constraint is enforced at
     /// compile time.
     #[inline(always)]
@@ -204,7 +204,7 @@ pub mod state {
 
     /// Type state meaning that the chain extension method deliberately does not return a `Result` type.
     ///
-    /// Additionally this is enforced by the `#[ink::chain_extension]` proc. macro when used.
+    /// Additionally this is enforced by the `#[pro::chain_extension]` proc. macro when used.
     #[derive(Debug)]
     pub struct NoResult<T> {
         no_result: PhantomData<fn() -> T>,
@@ -242,7 +242,7 @@ where
     /// ```should_panic
     /// # // Panics because the off-chain environment has not
     /// # // registered a chain extension method for the ID.
-    /// # use ink_env::chain_extension::{ChainExtensionMethod, FromStatusCode};
+    /// # use pro_env::chain_extension::{ChainExtensionMethod, FromStatusCode};
     /// let result = ChainExtensionMethod::build(5)
     ///     .input::<(bool, i32)>()
     ///     .output_result::<i32, MyError>()
@@ -269,7 +269,7 @@ where
                 self.func_id,
                 input,
                 ErrorCode::from_status_code,
-                |output| scale::Decode::decode(&mut &output[..]).map_err(Into::into),
+                |mut output| scale::Decode::decode(&mut output).map_err(Into::into),
             )
         })
     }
@@ -303,7 +303,7 @@ where
     /// ```should_panic
     /// # // Panics because the off-chain environment has not
     /// # // registered a chain extension method for the ID.
-    /// # use ink_env::chain_extension::{ChainExtensionMethod};
+    /// # use pro_env::chain_extension::{ChainExtensionMethod};
     /// let result = ChainExtensionMethod::build(5)
     ///     .input::<(bool, i32)>()
     ///     .output_result::<i32, MyError>()
@@ -323,7 +323,7 @@ where
                 self.func_id,
                 input,
                 |_status_code| Ok(()),
-                |output| scale::Decode::decode(&mut &output[..]).map_err(Into::into),
+                |mut output| scale::Decode::decode(&mut output).map_err(Into::into),
             )
         })
     }
@@ -361,7 +361,7 @@ where
     /// ```should_panic
     /// # // Panics because the off-chain environment has not
     /// # // registered a chain extension method for the ID.
-    /// # use ink_env::chain_extension::{ChainExtensionMethod, FromStatusCode};
+    /// # use pro_env::chain_extension::{ChainExtensionMethod, FromStatusCode};
     /// let result = ChainExtensionMethod::build(5)
     ///     .input::<(bool, i32)>()
     ///     .output::<i32>()
@@ -380,7 +380,7 @@ where
                 self.func_id,
                 input,
                 ErrorCode::from_status_code,
-                |output| {
+                |mut output| {
                     let decoded = <O as scale::Decode>::decode(&mut &output[..])
                         .expect("encountered error while decoding chain extension method call return value");
                     Ok(decoded)
@@ -414,7 +414,7 @@ where
     /// ```should_panic
     /// # // Panics because the off-chain environment has not
     /// # // registered a chain extension method for the ID.
-    /// # use ink_env::chain_extension::ChainExtensionMethod;
+    /// # use pro_env::chain_extension::ChainExtensionMethod;
     /// let result = ChainExtensionMethod::build(5)
     ///     .input::<(bool, i32)>()
     ///     .output::<i32>()
@@ -429,8 +429,8 @@ where
                 self.func_id,
                 input,
                 |_status_code| Ok(()),
-                |output| {
-                    let decoded = <O as scale::Decode>::decode(&mut &output[..])
+                |mut output| {
+                    let decoded = <O as scale::Decode>::decode(&mut output)
                         .expect("encountered error while decoding chain extension method call return value");
                     Ok(decoded)
                 },

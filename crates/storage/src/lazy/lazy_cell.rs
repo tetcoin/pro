@@ -29,7 +29,7 @@ use core::{
     fmt::Debug,
     ptr::NonNull,
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 /// A lazy storage entity.
 ///
@@ -58,7 +58,7 @@ where
     /// to the callers of `Lazy`. This cannot be done without `unsafe`
     /// code even with `RefCell`. Also `RefCell` has a larger memory footprint
     /// and has additional overhead that we can avoid by the interface
-    /// and the fact that ink! code is always run single-threaded.
+    /// and the fact that pro! code is always run single-threaded.
     /// Being efficient is important here because this is intended to be
     /// a low-level primitive with lots of dependencies.
     cache: CacheCell<Option<StorageEntry<T>>>,
@@ -77,8 +77,8 @@ where
 }
 
 #[test]
-fn debug_impl_works() -> ink_env::Result<()> {
-    ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+fn debug_impl_works() -> pro_env::Result<()> {
+    pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
         let c1 = <LazyCell<i32>>::new(None);
         assert_eq!(
             format!("{:?}", &c1),
@@ -133,7 +133,7 @@ where
                         assert_footprint_threshold(footprint);
                         let mut key_ptr = KeyPtr::from(*root_key);
                         for _ in 0..footprint {
-                            ink_env::clear_contract_storage(key_ptr.advance_by(1));
+                            pro_env::clear_contract_storage(key_ptr.advance_by(1));
                         }
                     }
                 }
@@ -145,7 +145,7 @@ where
 #[cfg(feature = "std")]
 const _: () = {
     use crate::traits::StorageLayout;
-    use ink_metadata::layout::Layout;
+    use pro_metadata::layout::Layout;
 
     impl<T> StorageLayout for LazyCell<T>
     where
@@ -190,7 +190,7 @@ where
                 assert_footprint_threshold(footprint);
                 let mut key_ptr = KeyPtr::from(*root_key);
                 for _ in 0..footprint {
-                    ink_env::clear_contract_storage(key_ptr.advance_by(1));
+                    pro_env::clear_contract_storage(key_ptr.advance_by(1));
                 }
             }
         }
@@ -260,7 +260,7 @@ where
     /// # Note
     ///
     /// The key is `None` if the `LazyCell` has been initialized as a value.
-    /// This generally only happens in ink! constructors.
+    /// This generally only happens in pro! constructors.
     fn key(&self) -> Option<&Key> {
         self.key.as_ref()
     }
@@ -304,7 +304,7 @@ where
         //         This is safe because we are just returning a shared reference
         //         from within a `&self` method. This also cannot change the
         //         loaded value and thus cannot change the `mutate` flag of the
-        //         entry. Aliases using this method are safe since ink! is
+        //         entry. Aliases using this method are safe since pro! is
         //         single-threaded.
         unsafe { &*self.load_through_cache().as_ptr() }
     }
@@ -316,7 +316,7 @@ where
         //         This is safe because we are just returning an exclusive reference
         //         from within a `&mut self` method. This may change the
         //         loaded value and thus the `mutate` flag of the entry is set.
-        //         Aliases cannot happen through this method since ink! is
+        //         Aliases cannot happen through this method since pro! is
         //         single-threaded.
         let entry = unsafe { &mut *self.load_through_cache().as_ptr() };
         entry.replace_state(EntryState::Mutated);
@@ -406,8 +406,8 @@ mod tests {
         },
         Lazy,
     };
-    use ink_env::test::run_test;
-    use ink_primitives::Key;
+    use pro_env::test::run_test;
+    use pro_primitives::Key;
 
     #[test]
     fn new_works() {
@@ -439,8 +439,8 @@ mod tests {
     }
 
     #[test]
-    fn lazy_works() -> ink_env::Result<()> {
-        run_test::<ink_env::DefaultEnvironment, _>(|_| {
+    fn lazy_works() -> pro_env::Result<()> {
+        run_test::<pro_env::DefaultEnvironment, _>(|_| {
             let root_key = Key::from([0x42; 32]);
             let cell = <LazyCell<u8>>::lazy(root_key);
             assert_eq!(cell.key(), Some(&root_key));
@@ -449,8 +449,8 @@ mod tests {
     }
 
     #[test]
-    fn lazy_get_works() -> ink_env::Result<()> {
-        run_test::<ink_env::DefaultEnvironment, _>(|_| {
+    fn lazy_get_works() -> pro_env::Result<()> {
+        run_test::<pro_env::DefaultEnvironment, _>(|_| {
             let cell = <LazyCell<u8>>::lazy(Key::from([0x42; 32]));
             let value = cell.get();
             // We do the normally unreachable check in order to have an easier
@@ -469,8 +469,8 @@ mod tests {
     }
 
     #[test]
-    fn spread_layout_works() -> ink_env::Result<()> {
-        run_test::<ink_env::DefaultEnvironment, _>(|_| {
+    fn spread_layout_works() -> pro_env::Result<()> {
+        run_test::<pro_env::DefaultEnvironment, _>(|_| {
             let cell_a0 = <LazyCell<u8>>::new(Some(b'A'));
             assert_eq!(cell_a0.get(), Some(&b'A'));
             // Push `cell_a0` to the contract storage.
@@ -514,8 +514,8 @@ mod tests {
     }
 
     #[test]
-    fn lazy_set_works() -> ink_env::Result<()> {
-        run_test::<ink_env::DefaultEnvironment, _>(|_| {
+    fn lazy_set_works() -> pro_env::Result<()> {
+        run_test::<pro_env::DefaultEnvironment, _>(|_| {
             let mut cell = <LazyCell<u8>>::lazy(Key::from([0x42; 32]));
             let value = cell.get();
             assert_eq!(value, None);
@@ -527,8 +527,8 @@ mod tests {
     }
 
     #[test]
-    fn lazy_set_works_with_spread_layout_push_pull() -> ink_env::Result<()> {
-        run_test::<ink_env::DefaultEnvironment, _>(|_| {
+    fn lazy_set_works_with_spread_layout_push_pull() -> pro_env::Result<()> {
+        run_test::<pro_env::DefaultEnvironment, _>(|_| {
             type MaybeValue = Option<u8>;
 
             // Initialize a LazyCell with None and push it to `k`
@@ -560,8 +560,8 @@ mod tests {
     }
 
     #[test]
-    fn regression_test_for_issue_528() -> ink_env::Result<()> {
-        run_test::<ink_env::DefaultEnvironment, _>(|_| {
+    fn regression_test_for_issue_528() -> pro_env::Result<()> {
+        run_test::<pro_env::DefaultEnvironment, _>(|_| {
             let root_key = Key::from([0x00; 32]);
             {
                 // Step 1: Push a valid pair onto the contract storage.
@@ -601,8 +601,8 @@ mod tests {
     }
 
     #[test]
-    fn regression_test_for_issue_570() -> ink_env::Result<()> {
-        run_test::<ink_env::DefaultEnvironment, _>(|_| {
+    fn regression_test_for_issue_570() -> pro_env::Result<()> {
+        run_test::<pro_env::DefaultEnvironment, _>(|_| {
             let root_key = Key::from([0x00; 32]);
             {
                 // Step 1: Push two valid values one after the other to contract storage.
@@ -654,8 +654,8 @@ mod tests {
     }
 
     #[test]
-    fn second_regression_test_for_issue_570() -> ink_env::Result<()> {
-        run_test::<ink_env::DefaultEnvironment, _>(|_| {
+    fn second_regression_test_for_issue_570() -> pro_env::Result<()> {
+        run_test::<pro_env::DefaultEnvironment, _>(|_| {
             // given
             let root_key = Key::from([0x00; 32]);
             let none: Option<u32> = None;
@@ -711,7 +711,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "encountered empty storage cell")]
     fn nested_lazies_are_cleared_completely_after_pull() {
-        ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+        pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
             // given
             let root_key = Key::from([0x42; 32]);
             let nested_lazy: Lazy<Lazy<u32>> = Lazy::new(Lazy::new(13u32));
@@ -724,12 +724,12 @@ mod tests {
             SpreadLayout::clear_spread(&pulled_lazy, &mut KeyPtr::from(root_key));
 
             // then
-            let contract_id = ink_env::test::get_current_contract_account_id::<
-                ink_env::DefaultEnvironment,
+            let contract_id = pro_env::test::get_current_contract_account_id::<
+                pro_env::DefaultEnvironment,
             >()
             .expect("Cannot get contract id");
-            let used_cells = ink_env::test::count_used_storage_cells::<
-                ink_env::DefaultEnvironment,
+            let used_cells = pro_env::test::count_used_storage_cells::<
+                pro_env::DefaultEnvironment,
             >(&contract_id)
             .expect("used cells must be returned");
             assert_eq!(used_cells, 0);
@@ -744,7 +744,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "encountered empty storage cell")]
     fn lazy_drop_works() {
-        ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+        pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
             // given
             let root_key = Key::from([0x42; 32]);
 
@@ -759,12 +759,12 @@ mod tests {
             assert!(setup_result.is_ok(), "setup should not panic");
 
             // then
-            let contract_id = ink_env::test::get_current_contract_account_id::<
-                ink_env::DefaultEnvironment,
+            let contract_id = pro_env::test::get_current_contract_account_id::<
+                pro_env::DefaultEnvironment,
             >()
             .expect("Cannot get contract id");
-            let used_cells = ink_env::test::count_used_storage_cells::<
-                ink_env::DefaultEnvironment,
+            let used_cells = pro_env::test::count_used_storage_cells::<
+                pro_env::DefaultEnvironment,
             >(&contract_id)
             .expect("used cells must be returned");
             assert_eq!(used_cells, 0);
@@ -778,7 +778,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "encountered empty storage cell")]
     fn lazy_drop_works_with_greater_footprint() {
-        ink_env::test::run_test::<ink_env::DefaultEnvironment, _>(|_| {
+        pro_env::test::run_test::<pro_env::DefaultEnvironment, _>(|_| {
             // given
             let root_key = Key::from([0x42; 32]);
 
@@ -794,12 +794,12 @@ mod tests {
             assert!(setup_result.is_ok(), "setup should not panic");
 
             // then
-            let contract_id = ink_env::test::get_current_contract_account_id::<
-                ink_env::DefaultEnvironment,
+            let contract_id = pro_env::test::get_current_contract_account_id::<
+                pro_env::DefaultEnvironment,
             >()
             .expect("Cannot get contract id");
-            let used_cells = ink_env::test::count_used_storage_cells::<
-                ink_env::DefaultEnvironment,
+            let used_cells = pro_env::test::count_used_storage_cells::<
+                pro_env::DefaultEnvironment,
             >(&contract_id)
             .expect("used cells must be returned");
             assert_eq!(used_cells, 0);

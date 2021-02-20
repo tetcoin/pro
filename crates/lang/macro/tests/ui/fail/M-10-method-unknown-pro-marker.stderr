@@ -1,0 +1,5 @@
+error: unknown pro! attribute (path)
+  --> $DIR/M-10-method-unknown-pro-marker.rs:17:15
+   |
+17 |         #[pro(unknown_marker)]
+   |               ^^^^^^^^^^^^^^

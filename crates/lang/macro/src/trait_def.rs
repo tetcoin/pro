@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use ink_lang_codegen::generate_code;
+use pro_lang_codegen::generate_code;
 use proc_macro2::TokenStream as TokenStream2;
 use syn::Result;
 
@@ -24,6 +24,6 @@ pub fn analyze(attr: TokenStream2, input: TokenStream2) -> TokenStream2 {
 }
 
 pub fn analyze_or_err(attr: TokenStream2, input: TokenStream2) -> Result<TokenStream2> {
-    let trait_definition = ink_lang_ir::InkTrait::new(attr, input)?;
+    let trait_definition = pro_lang_ir::ProTrait::new(attr, input)?;
     Ok(generate_code(&trait_definition))
 }

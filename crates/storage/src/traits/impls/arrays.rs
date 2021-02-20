@@ -18,7 +18,7 @@ use crate::traits::{
     SpreadLayout,
 };
 use array_init::array_init;
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 #[rustfmt::skip]
 macro_rules! forward_supported_array_lens {

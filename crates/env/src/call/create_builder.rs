@@ -41,7 +41,7 @@ pub mod state {
 /// # Note
 ///
 /// This is needed because of conflicting implementations of `From<T> for T`
-/// in the generated code of `ink_lang`.
+/// in the generated code of `pro_lang`.
 pub trait FromAccountId<T>
 where
     T: Environment,
@@ -163,7 +163,7 @@ where
 ///    3. an array of 32 `u8` with value `0x10`
 ///
 /// ```should_panic
-/// # use ::ink_env::{
+/// # use ::pro_env::{
 /// #     Environment,
 /// #     DefaultEnvironment,
 /// #     call::{build_create, Selector, ExecutionInput, FromAccountId}

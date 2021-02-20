@@ -18,11 +18,11 @@ use crate::traits::{
     KeyPtr,
     SpreadLayout,
 };
-use ink_env::{
+use pro_env::{
     AccountId,
     Hash,
 };
-use ink_metadata::layout::{
+use pro_metadata::layout::{
     ArrayLayout,
     CellLayout,
     Discriminant,
@@ -32,14 +32,14 @@ use ink_metadata::layout::{
     LayoutKey,
     StructLayout,
 };
-use ink_prelude::{
+use pro_prelude::{
     boxed::Box,
     collections::BTreeMap,
     string::String,
     vec::Vec,
 };
-use ink_primitives::Key;
-use scale_info::TypeInfo;
+use pro_primitives::Key;
+use tetsy_scale_info::TypeInfo;
 
 macro_rules! impl_storage_layout_for_primitives {
     ( $($name:ty),* $(,)? ) => {

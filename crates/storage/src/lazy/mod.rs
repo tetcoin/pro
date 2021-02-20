@@ -53,7 +53,7 @@ use crate::traits::{
     KeyPtr,
     SpreadLayout,
 };
-use ink_primitives::Key;
+use pro_primitives::Key;
 
 /// A lazy storage entity.
 ///
@@ -73,7 +73,7 @@ where
 #[cfg(feature = "std")]
 const _: () = {
     use crate::traits::StorageLayout;
-    use ink_metadata::layout::Layout;
+    use pro_metadata::layout::Layout;
 
     impl<T> StorageLayout for Lazy<T>
     where
@@ -272,7 +272,7 @@ where
     }
 }
 
-impl<T> ink_prelude::borrow::Borrow<T> for Lazy<T>
+impl<T> pro_prelude::borrow::Borrow<T> for Lazy<T>
 where
     T: SpreadLayout,
 {
@@ -281,7 +281,7 @@ where
     }
 }
 
-impl<T> ink_prelude::borrow::BorrowMut<T> for Lazy<T>
+impl<T> pro_prelude::borrow::BorrowMut<T> for Lazy<T>
 where
     T: SpreadLayout,
 {
