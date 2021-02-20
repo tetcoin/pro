@@ -24,6 +24,6 @@ proc-macro2 = "1.0"
 synstructure = "0.12.4"
 
 [dev-dependencies]
-#pro_primitives = { version = "3.0.0-rc2", path = "../../primitives" }
-#pro_metadata = { version = "3.0.0-rc2", path = "../../metadata" }
-#pro_storage = { version = "3.0.0-rc2", path = ".." }
+pro_primitives = { version = "3.0.0-rc2", path = "../../primitives" }
+pro_metadata = { version = "3.0.0-rc2", path = "../../metadata" }
+pro_storage = { version = "3.0.0-rc2", path = ".." }
