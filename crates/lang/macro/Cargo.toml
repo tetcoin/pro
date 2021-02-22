@@ -32,7 +32,7 @@ pro_lang = { version = "3.0.0-rc2", path = ".." }
 trybuild = "1.0.24"
 tetsy-scale-info = { version = "0.5.1", default-features = false, features = ["derive"] }
 
-funty = "=1.1.0"
+funty = "=1.2.0"
 
 [lib]
 name = "pro_lang_macro"

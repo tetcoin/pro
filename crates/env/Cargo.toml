@@ -39,7 +39,7 @@ blake2 = { version = "0.9", optional = true }
 # Never use this crate outside of the off-chain environment!
 rand = { version = "0.8", default-features = false, features = ["alloc"], optional = true }
 tetsy-scale-info = { version = "0.5.1", default-features = false, features = ["derive"], optional = true }
-funty = "=1.1.0"
+funty = "=1.2.0"
 
 [features]
 default = ["std"]
